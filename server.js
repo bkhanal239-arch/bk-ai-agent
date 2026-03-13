@@ -31,7 +31,7 @@ function makeToken(username) {
 function validateToken(req) {
   const auth = req.headers["authorization"] || "";
   const token = auth.replace("Bearer ", "").trim();
-  const expected = makeToken(process.env.ADMIN_USERNAME);
+  const expected = makeToken((process.env.ADMIN_USERNAME || "").trim());
   return token === expected;
 }
 
@@ -64,14 +64,10 @@ app.get("/health", (_req, res) => {
 // ── Login ──────────────────────────────────────────────────────────────────
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body || {};
-  console.log("LOGIN attempt:", JSON.stringify({ username, password }));
-  console.log("ENV username:", JSON.stringify(process.env.ADMIN_USERNAME));
-  console.log("ENV password:", JSON.stringify(process.env.ADMIN_PASSWORD));
-  if (
-    username === process.env.ADMIN_USERNAME &&
-    password === process.env.ADMIN_PASSWORD
-  ) {
-    return res.json({ token: makeToken(username) });
+  const envUser = (process.env.ADMIN_USERNAME || "").trim();
+  const envPass = (process.env.ADMIN_PASSWORD || "").trim();
+  if (username === envUser && password === envPass) {
+    return res.json({ token: makeToken(envUser) });
   }
   res.status(401).json({ error: "Invalid username or password." });
 });
