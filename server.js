@@ -62,8 +62,11 @@ app.get("/health", (_req, res) => {
 });
 
 // ── Login ──────────────────────────────────────────────────────────────────
-app.post("/api/login", express.json(), (req, res) => {
+app.post("/api/login", (req, res) => {
   const { username, password } = req.body || {};
+  console.log("LOGIN attempt:", JSON.stringify({ username, password }));
+  console.log("ENV username:", JSON.stringify(process.env.ADMIN_USERNAME));
+  console.log("ENV password:", JSON.stringify(process.env.ADMIN_PASSWORD));
   if (
     username === process.env.ADMIN_USERNAME &&
     password === process.env.ADMIN_PASSWORD
