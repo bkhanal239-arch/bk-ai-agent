@@ -3,39 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>BK AI Agent</title>
+  <title>AI EXOVERSE</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://js.stripe.com/v3/" async></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
 
     :root {
       --sidebar-w: 240px; --radius: 12px;
-      --sidebar-bg: #171717; --main-bg: #212121; --surface: #2f2f2f; --surface2: #3f3f3f;
-      --border: #3f3f3f; --text: #ececec; --text-muted: #8e8ea0;
-      --accent: #10a37f; --accent-h: #0d8f6e; --user-bg: #2f2f2f;
-      --hover-bg: rgba(255,255,255,0.07); --hover-bg2: rgba(255,255,255,0.1);
-      --code-inline-bg: #1a1a1a; --code-inline-color: #e3e3e3;
-      --code-block-bg: #0d0d0d; --code-header-bg: #1a1a1a; --code-tbl-hd: #1a1a1a;
-      --login-bg: #0d0d0d; --login-card-bg: #1a1a1a; --login-input-bg: #2f2f2f; --login-input-bdr: #3f3f3f;
-      --gemini-color: #10a37f; --gpt-color: #0ea5e9; --claude-color: #d97706; --compare-color: #6366f1; --incognito-color: #8b5cf6;
+      /* ── Option A: 10-Color Palette ── */
+      /* 1:#3F51B5  2:#FF9933  3:#FFD700  4:#4285F4  5:#10A37F  6:#CC785C  7:#06B6D4  8:#191A2E  9:#252640  10:#94A3B8 */
+      --accent: #3F51B5; --accent-h: #2a3a9e;
+      --sidebar-bg: #1e2035; --main-bg: #191A2E; --surface: #252640; --surface2: #2e3058;
+      --border: rgba(255,255,255,0.1); --text: #f1f5f9; --text-muted: #94A3B8;
+      --user-bg: #252640;
+      --hover-bg: rgba(63,81,181,0.14); --hover-bg2: rgba(63,81,181,0.22);
+      --code-inline-bg: #1e2035; --code-inline-color: #e2e8f0;
+      --code-block-bg: #161727; --code-header-bg: #1e2035; --code-tbl-hd: #1e2035;
+      --login-bg: #161727; --login-card-bg: #191A2E; --login-input-bg: #252640; --login-input-bdr: rgba(255,255,255,0.12);
+      --gemini-color: #4285F4; --gpt-color: #10A37F; --claude-color: #CC785C; --deepseek-color: #06B6D4; --compare-color: #FF9933; --incognito-color: #7986CB;
+      --glow: rgba(63,81,181,0.3); --glow-sm: rgba(63,81,181,0.15);
     }
     [data-theme="light"] {
-      --sidebar-bg: #f7f7f8; --main-bg: #ffffff; --surface: #f0f0f0; --surface2: #e4e4e7;
-      --border: #d4d4d8; --text: #18181b; --text-muted: #6b7280; --user-bg: #e8e8eb;
-      --hover-bg: rgba(0,0,0,0.05); --hover-bg2: rgba(0,0,0,0.08);
-      --code-inline-bg: #e8e8eb; --code-inline-color: #18181b;
-      --code-block-bg: #f4f4f5; --code-header-bg: #e8e8eb; --code-tbl-hd: #e8e8eb;
-      --login-bg: #f0f0f3; --login-card-bg: #fff; --login-input-bg: #f0f0f3; --login-input-bdr: #d4d4d8;
+      --accent: #3F51B5; --accent-h: #2a3a9e;
+      --sidebar-bg: #ffffff; --main-bg: #f8f9fc; --surface: #ffffff; --surface2: #f1f3f9;
+      --border: #e4e7f0; --text: #0f172a; --text-muted: #64748b; --user-bg: #f1f3f9;
+      --hover-bg: rgba(63,81,181,0.07); --hover-bg2: rgba(63,81,181,0.12);
+      --code-inline-bg: #f1f3f9; --code-inline-color: #1e293b;
+      --code-block-bg: #f8f9fc; --code-header-bg: #eef0f8; --code-tbl-hd: #eef0f8;
+      --login-bg: #f8f9fc; --login-card-bg: #ffffff; --login-input-bg: #f8f9fc; --login-input-bdr: #e4e7f0;
+      --glow: rgba(63,81,181,0.15); --glow-sm: rgba(63,81,181,0.08);
+      --gemini-color: #4285F4; --gpt-color: #0d9268; --claude-color: #a8613e; --deepseek-color: #0891b2; --compare-color: #FF9933; --incognito-color: #3F51B5;
     }
 
     body { font-family:"Söhne","Segoe UI",system-ui,sans-serif; background:var(--main-bg); color:var(--text); display:flex; height:100dvh; overflow:hidden; transition:background 0.2s,color 0.2s; }
 
     /* ══ SIDEBAR ══ */
-    #sidebar { width:var(--sidebar-w); background:var(--sidebar-bg); display:flex; flex-direction:column; padding:8px; gap:2px; flex-shrink:0; overflow:hidden; transition:background 0.2s; }
+    #sidebar { width:var(--sidebar-w); background:var(--sidebar-bg); display:flex; flex-direction:column; padding:8px; gap:2px; flex-shrink:0; overflow:hidden; transition:width 0.22s ease, padding 0.22s ease, background 0.2s; }
+    #sidebar.collapsed { width:0; padding:0; }
+    /* sidebar toggle button — inside header */
+    #sidebar-toggle-btn { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:5px 6px; border-radius:7px; display:flex; align-items:center; justify-content:center; transition:background 0.15s,color 0.15s; flex-shrink:0; }
+    #sidebar-toggle-btn:hover { background:var(--hover-bg); color:var(--text); }
+    /* topbar toggle — shown when sidebar is collapsed */
+    #sidebar-open-btn { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:5px 6px; border-radius:7px; display:none; align-items:center; justify-content:center; transition:background 0.15s,color 0.15s; margin-right:4px; }
+    #sidebar-open-btn:hover { background:var(--hover-bg); color:var(--text); }
+    body.sidebar-collapsed #sidebar-open-btn { display:flex; }
+    #pricing-help-btn { display:flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; border:1.5px solid var(--border); background:none; color:var(--text-muted); font-size:0.82rem; font-weight:700; text-decoration:none; margin-right:2px; transition:background 0.15s,color 0.15s,border-color 0.15s; flex-shrink:0; }
+    #pricing-help-btn:hover { background:#3F51B5; color:#fff; border-color:#3F51B5; }
     #sidebar-header { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; margin-bottom:4px; }
     .sidebar-logo { font-size:0.95rem; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px; }
-    .sidebar-logo span { width:26px; height:26px; background:var(--accent); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; }
+    .sidebar-logo span { width:26px; height:26px; background:linear-gradient(135deg,#3F51B5,#FF9933); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:13px; box-shadow:0 0 10px rgba(63,81,181,0.4); }
     #new-chat-btn { display:flex; align-items:center; gap:10px; width:100%; padding:9px 12px; border-radius:var(--radius); border:none; background:transparent; color:var(--text); font-size:0.85rem; font-family:inherit; cursor:pointer; transition:background 0.15s; text-align:left; }
     #new-chat-btn:hover { background:var(--hover-bg); }
     #new-chat-btn svg { width:16px; height:16px; flex-shrink:0; }
@@ -80,12 +98,16 @@
     #est-clock { font-size:0.64rem; color:var(--text-muted); text-align:center; padding:5px 8px; letter-spacing:0.3px; background:var(--hover-bg); border-radius:6px; margin-bottom:6px; font-variant-numeric:tabular-nums; display:none; }
     .cost-section { margin-top:7px; padding-top:6px; border-top:1px solid var(--border); }
     .cost-row { display:flex; justify-content:space-between; align-items:center; padding:2px 0; }
-    .cost-row .cost-lbl { font-size:0.65rem; color:var(--text-muted); }
-    .cost-row .cost-val { font-size:0.72rem; font-weight:600; color:var(--text); font-variant-numeric:tabular-nums; }
+    .cost-row .cost-lbl { font-size:0.65rem; color:#3F51B5; }
+    .cost-row .cost-val { font-size:0.72rem; font-weight:600; color:#3F51B5; font-variant-numeric:tabular-nums; }
+    [data-theme="light"] .cost-row .cost-lbl { color:#3F51B5; }
+    [data-theme="light"] .cost-row .cost-val { color:#3F51B5; }
 
     #sidebar-footer { border-top:1px solid var(--border); padding:8px 4px 4px; display:flex; flex-direction:column; gap:2px; }
-    .sidebar-footer-btn { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:var(--radius); font-size:0.81rem; color:var(--text-muted); cursor:pointer; transition:background 0.15s; }
+    .sidebar-footer-btn { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:var(--radius); font-size:0.81rem; color:var(--text-muted); cursor:pointer; transition:background 0.15s,color 0.15s; }
     .sidebar-footer-btn:hover { background:var(--hover-bg); color:var(--text); }
+    .sidebar-footer-btn.panel-open { background:var(--hover-bg2); color:var(--text) !important; }
+    [data-theme="light"] .sidebar-footer-btn.panel-open { background:rgba(63,81,181,0.1); color:#3F51B5 !important; }
     .sidebar-footer-btn svg { width:15px; height:15px; flex-shrink:0; }
     #think-sidebar-btn { border:none; background:transparent; font-family:inherit; width:100%; text-align:left; }
     #think-sidebar-btn.active { color:#f59e0b; }
@@ -104,19 +126,30 @@
     .model-tab { background:none; border:none; color:var(--text-muted); font-family:inherit; font-size:0.76rem; font-weight:500; padding:5px 11px; border-radius:7px; cursor:pointer; transition:background 0.15s,color 0.15s; display:flex; align-items:center; gap:4px; white-space:nowrap; }
     .model-tab:hover:not(.unavailable) { background:var(--hover-bg); color:var(--text); }
     .model-tab.active { background:var(--main-bg); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.25); }
-    [data-theme="light"] .model-tab.active { box-shadow:0 1px 3px rgba(0,0,0,0.12); }
-    .model-tab.gemini-tab.active    { color:var(--gemini-color); }
-    .model-tab.gpt-tab.active       { color:var(--gpt-color); }
-    .model-tab.claude-tab.active    { color:var(--claude-color); }
-    .model-tab.compare-tab.active   { color:var(--compare-color); }
-    .model-tab.incognito-tab.active { color:var(--incognito-color); }
+    [data-theme="light"] .model-tab.active { background:#ffffff !important; box-shadow:0 1px 4px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.06); }
+    [data-theme="light"] #model-switcher { background:#f1f3f9; border-color:#e4e7f0; }
+    [data-theme="light"] .model-tab { color:#475569 !important; }
+    [data-theme="light"] .model-tab:hover:not(.unavailable) { color:#0f172a !important; background:rgba(0,0,0,0.05); }
+    /* active tab model colours — !important to win over any cascade */
+    .model-tab.gemini-tab.active    { color:#4285f4 !important; }
+    .model-tab.gpt-tab.active       { color:var(--gpt-color) !important; }
+    .model-tab.claude-tab.active    { color:var(--claude-color) !important; }
+    .model-tab.deepseek-tab.active  { color:var(--deepseek-color) !important; }
+    .model-tab.compare-tab.active   { color:var(--compare-color) !important; }
+    .model-tab.incognito-tab.active { color:var(--incognito-color) !important; }
+    [data-theme="light"] .model-tab.gemini-tab.active    { color:#4285F4 !important; }
+    [data-theme="light"] .model-tab.gpt-tab.active       { color:#0d9268 !important; }
+    [data-theme="light"] .model-tab.claude-tab.active    { color:#a8613e !important; }
+    [data-theme="light"] .model-tab.deepseek-tab.active  { color:#0891b2 !important; }
+    [data-theme="light"] .model-tab.compare-tab.active   { color:#FF9933 !important; }
+    [data-theme="light"] .model-tab.incognito-tab.active { color:#3F51B5 !important; }
     .model-tab.unavailable { opacity:0.38; cursor:not-allowed; }
 
     /* Incognito badge in topbar */
     #incognito-badge { display:none; align-items:center; gap:5px; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.3); border-radius:6px; padding:3px 9px; font-size:0.71rem; color:var(--incognito-color); font-weight:600; }
     #incognito-badge.visible { display:flex; }
 
-    #status-dot { width:8px; height:8px; border-radius:50%; background:#3dd68c; box-shadow:0 0 6px rgba(61,214,140,0.6); }
+    #status-dot { width:8px; height:8px; border-radius:50%; background:#4285f4; box-shadow:0 0 6px rgba(66,133,244,0.7); }
     #theme-btn { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:6px 7px; border-radius:8px; font-size:15px; line-height:1; transition:background 0.15s; }
     #theme-btn:hover { background:var(--surface); color:var(--text); }
     #sources-toggle { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:5px 7px; border-radius:8px; font-size:14px; line-height:1; transition:background 0.15s; position:relative; display:flex; align-items:center; gap:5px; font-family:inherit; font-size:0.78rem; font-weight:500; }
@@ -124,12 +157,98 @@
     #sources-toggle .src-count { display:none; background:var(--accent); color:#fff; border-radius:10px; padding:1px 5px; font-size:0.62rem; font-weight:700; min-width:16px; text-align:center; }
     #sources-toggle .src-count.visible { display:inline-block; }
 
+    /* ── Model Version Bar ── */
+    #model-version-bar { display:none; align-items:center; gap:10px; padding:6px 14px; border-bottom:1px solid var(--border); flex-shrink:0; background:var(--sidebar-bg); transition:background 0.3s; }
+    #model-version-bar.visible { display:flex; }
+    #model-version-bar.gemini-mode { background:linear-gradient(90deg,rgba(66,133,244,0.07) 0%,var(--sidebar-bg) 55%); }
+    #model-version-bar.gpt-mode    { background:linear-gradient(90deg,rgba(6,182,212,0.07) 0%,var(--sidebar-bg) 55%); }
+    .mvb-label { color:var(--text-muted); font-weight:700; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.6px; white-space:nowrap; flex-shrink:0; }
+    #mvb-options { display:flex; gap:6px; align-items:center; }
+    .mvb-btn { background:none; border:1px solid var(--border); color:var(--text-muted); font-family:inherit; font-size:0.76rem; font-weight:500; padding:5px 14px; border-radius:20px; cursor:pointer; transition:all 0.18s; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; line-height:1; }
+    .mvb-btn:hover:not(.active) { background:var(--hover-bg); color:var(--text); border-color:var(--surface2); }
+    .mvb-btn.active.gemini-ver { background:rgba(66,133,244,0.1);  border-color:#4285f4; color:#4285f4; font-weight:700; box-shadow:0 0 0 3px rgba(66,133,244,0.1); }
+    .mvb-btn.active.gpt-ver    { background:rgba(6,182,212,0.1);   border-color:#06b6d4; color:#06b6d4; font-weight:700; box-shadow:0 0 0 3px rgba(6,182,212,0.1); }
+    .mvb-pro-tag  { font-size:0.58rem; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; background:linear-gradient(135deg,#3F51B5,#FF9933); color:#fff; padding:2px 6px; border-radius:4px; flex-shrink:0; }
+    .mvb-lite-tag { font-size:0.58rem; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; background:var(--surface2); color:var(--text-muted); padding:2px 6px; border-radius:4px; flex-shrink:0; }
+
+    /* ══ TOPBAR gradient accent line ══ */
+    #topbar { position: relative; }
+    #topbar::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, #3F51B5, #FF9933, #06B6D4);
+      opacity: 0.4;
+    }
+
+    /* ══ SCROLLBAR ══ */
+    * { scrollbar-width: thin; scrollbar-color: rgba(63,81,181,0.35) transparent; }
+    *::-webkit-scrollbar { width: 4px; height: 4px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: rgba(63,81,181,0.35); border-radius: 99px; }
+    *::-webkit-scrollbar-thumb:hover { background: rgba(63,81,181,0.6); }
+
+    /* ══ MODEL TABS — futuristic pill style ══ */
+    #model-switcher { background: var(--surface); border: 1px solid rgba(255,255,255,0.06); }
+    .model-tab { color: #94a3b8; background: transparent; }
+    .model-tab:hover:not(.unavailable) { background: rgba(63,81,181,0.14); color: #fff; }
+    .model-tab.active {
+      background: rgba(63,81,181,0.18) !important;
+      color: #fff !important;
+      border: 1px solid rgba(63,81,181,0.5);
+      box-shadow: 0 0 10px rgba(63,81,181,0.25), inset 0 0 8px rgba(63,81,181,0.08);
+    }
+    .model-tab.gemini-tab.active    { border-color: rgba(66,133,244,0.5);  box-shadow: 0 0 10px rgba(66,133,244,0.2); }
+    .model-tab.gpt-tab.active       { border-color: rgba(16,163,127,0.5);  box-shadow: 0 0 10px rgba(16,163,127,0.2); }
+    .model-tab.claude-tab.active    { border-color: rgba(204,120,92,0.5);  box-shadow: 0 0 10px rgba(204,120,92,0.2); }
+    .model-tab.deepseek-tab.active  { border-color: rgba(6,182,212,0.5);   box-shadow: 0 0 10px rgba(6,182,212,0.2); }
+    .model-tab.compare-tab.active   { border-color: rgba(255,153,51,0.5);  box-shadow: 0 0 10px rgba(255,153,51,0.2); }
+    .model-tab.incognito-tab.active { border-color: rgba(121,134,203,0.5); box-shadow: 0 0 10px rgba(121,134,203,0.2); }
+
+    /* ══ SIDEBAR FOOTER BUTTONS ══ */
+    .sidebar-footer-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .sidebar-footer-btn:hover {
+      background: var(--hover-bg) !important;
+      border-color: var(--border) !important;
+      color: var(--text) !important;
+    }
+    [data-theme="light"] .sidebar-footer-btn:hover {
+      background: rgba(63,81,181,0.08) !important;
+      color: #0f172a !important;
+    }
+
+    /* ══ COMPARE COLUMN DIVIDERS ══ */
+    #compare-panels > div + div { border-left: 1px solid rgba(255,255,255,0.06); }
+
     /* ══ COMPARE MODE BAR ══ */
     #cmp-mode-bar { display:none; gap:5px; padding:6px 12px; border-bottom:1px solid var(--border); background:var(--surface); flex-wrap:wrap; flex-shrink:0; }
     #cmp-mode-bar.visible { display:flex; }
+
+    /* ══ BUDGET BANNER ══ */
+    #budget-banner.warn  { background:rgba(234,179,8,0.07);  border-color:rgba(234,179,8,0.3);  color:#ca8a04; }
+    #budget-banner.limit { background:rgba(239,68,68,0.07);  border-color:rgba(239,68,68,0.3);  color:#dc2626; }
+    [data-theme="dark"] #budget-banner.warn  { color:#fbbf24; }
+    [data-theme="dark"] #budget-banner.limit { color:#f87171; }
+    /* Admin budget table */
+    .budget-stat-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-bottom:18px; }
+    .budget-stat-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px; text-align:center; }
+    .budget-stat-card .bsc-label { font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+    .budget-stat-card .bsc-val   { font-size:1.35rem; font-weight:700; color:var(--text); font-variant-numeric:tabular-nums; }
+    #spending-chart-wrap { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:18px; }
+    #spending-chart-title { font-size:0.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; }
+    #spending-chart { width:100%; display:block; }
+    .budget-tbl-bar-wrap { width:80px; height:5px; background:var(--border); border-radius:3px; display:inline-block; vertical-align:middle; }
+    .budget-tbl-bar-fill { height:100%; border-radius:3px; }
+    .cycle-budget-section { margin-top:7px; padding-top:6px; border-top:1px solid var(--border); }
     .cmp-mode-btn { background:none; border:1px solid var(--border); color:var(--text-muted); font-family:inherit; font-size:0.72rem; padding:4px 11px; border-radius:6px; cursor:pointer; transition:background 0.15s,color 0.15s,border-color 0.15s; white-space:nowrap; }
     .cmp-mode-btn:hover { background:var(--hover-bg); color:var(--text); }
-    .cmp-mode-btn.active { background:rgba(99,102,241,0.1); border-color:var(--compare-color); color:var(--compare-color); font-weight:600; }
+    .cmp-mode-btn.active { background:rgba(255,153,51,0.12); border-color:var(--compare-color); color:var(--compare-color); font-weight:600; }
 
     /* ══ COMPARE HEADER ══ */
     #compare-header { display:none; flex-shrink:0; border-bottom:1px solid var(--border); }
@@ -181,8 +300,8 @@
     .msg-inner { max-width:720px; margin:0 auto; padding:0 22px; display:flex; gap:13px; align-items:flex-start; }
     .msg-row.user .msg-inner { flex-direction:row-reverse; max-width:640px; }
     .msg-avatar { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; margin-top:2px; }
-    .msg-row.user       .msg-avatar { background:#19c37d; color:#fff; font-weight:700; font-size:11px; }
-    .msg-row.bot        .msg-avatar { background:var(--gemini-color); }
+    .msg-row.user       .msg-avatar { background:#3F51B5; color:#fff; font-weight:700; font-size:11px; }
+    .msg-row.bot        .msg-avatar { background:transparent; overflow:visible; }
     .msg-row.bot.gpt-msg.msg-avatar, .msg-row.bot.gpt-msg .msg-avatar { background:var(--gpt-color); font-size:11px; font-weight:700; }
     .msg-row.bot.claude-msg .msg-avatar { background:var(--claude-color); font-size:11px; font-weight:700; }
     .msg-body { flex:1; min-width:0; }
@@ -226,8 +345,8 @@
 
     /* ══ INPUT ══ */
     #input-area { padding:10px 22px 14px; padding-bottom:max(14px,env(safe-area-inset-bottom)); flex-shrink:0; }
-    #input-box { max-width:720px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:9px 11px; transition:border-color 0.2s; }
-    #input-box:focus-within { border-color:rgba(128,128,128,0.35); }
+    #input-box { max-width:720px; margin:0 auto; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:9px 11px; transition:border-color 0.25s, box-shadow 0.25s; }
+    #input-box:focus-within { border-color:#3F51B5; box-shadow: 0 0 12px rgba(63,81,181,0.18), 0 0 24px rgba(63,81,181,0.08); }
     #file-preview-strip { display:none; align-items:center; gap:10px; padding:7px 4px; border-bottom:1px solid var(--border); margin-bottom:7px; }
     #file-preview-strip.visible { display:flex; }
     #file-preview-img { width:40px; height:40px; object-fit:cover; border-radius:6px; display:none; }
@@ -246,31 +365,169 @@
     .ibtn:disabled { opacity:0.4; cursor:not-allowed; }
     .ibtn svg { width:15px; height:15px; }
     .ibtn.has-file { color:var(--accent); }
-    #send-btn { background:var(--accent); color:#fff; border-radius:8px; }
-    #send-btn:hover:not(:disabled) { background:var(--accent-h); }
-    #send-btn:disabled { background:var(--surface2); }
+    #send-btn { background:linear-gradient(135deg,#3F51B5,#FF9933); color:#fff; border-radius:8px; transition:box-shadow 0.2s,opacity 0.2s; }
+    #send-btn:hover:not(:disabled) { box-shadow:0 0 14px rgba(63,81,181,0.5); opacity:0.92; }
+    #send-btn:disabled { background:var(--surface2); box-shadow:none; }
     #voice-btn.recording { color:#ef4444; animation:voicePulse 1s infinite; }
     @keyframes voicePulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
     .input-footer { text-align:center; font-size:0.65rem; color:var(--text-muted); margin-top:6px; max-width:720px; margin-left:auto; margin-right:auto; }
     .model-version-badge { display:inline-block; background:var(--surface2); border:1px solid var(--border); border-radius:4px; padding:1px 6px; font-size:0.62rem; font-weight:600; font-family:"Cascadia Code","Fira Code","Consolas",monospace; color:var(--text-muted); letter-spacing:0.2px; }
 
+    /* ══ PLAN BADGE ══ */
+    .plan-badge { display:inline-flex; align-items:center; padding:2px 7px; border-radius:10px; font-size:0.62rem; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; }
+    .plan-free       { background:rgba(148,163,184,0.1);  color:#94a3b8;  border:1px solid rgba(255,255,255,0.08); }
+    .plan-basic      { background:rgba(66,133,244,0.1);   color:#4285f4; border:1px solid rgba(66,133,244,0.3); }
+    .plan-premium    { background:rgba(63,81,181,0.14);   color:#7986CB; border:1px solid rgba(63,81,181,0.35); }
+    .plan-pro        { background:rgba(255,153,51,0.12);  color:#FF9933; border:1px solid rgba(255,153,51,0.3); }
+    .plan-enterprise { background:rgba(255,215,0,0.12);   color:#FFD700; border:1px solid rgba(255,215,0,0.4); }
+    #sidebar-user-info { display:flex; align-items:center; justify-content:space-between; padding:6px 12px; font-size:0.78rem; color:var(--text-muted); }
+    #sidebar-username { font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+    /* ══ ADMIN / ORG PANEL OVERLAY ══ */
+    .panel-overlay { display:none; position:fixed; inset:0; z-index:500; background:var(--main-bg); flex-direction:column; overflow:hidden; }
+    .panel-overlay.open { display:flex; }
+    .panel-header { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:1px solid var(--border); flex-shrink:0; }
+    .panel-header h2 { font-size:1.05rem; font-weight:700; color:var(--text); display:flex; align-items:center; gap:10px; }
+    .panel-close-btn { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:22px; line-height:1; padding:4px 8px; border-radius:8px; transition:background 0.15s; }
+    .panel-close-btn:hover { background:var(--surface); color:var(--text); }
+    .panel-body { flex:1; overflow-y:auto; padding:24px; max-width:960px; width:100%; margin:0 auto; }
+    .panel-body::-webkit-scrollbar { width:4px; }
+    .panel-body::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px; }
+
+    /* Tabs */
+    .panel-tabs { display:flex; gap:4px; margin-bottom:20px; border-bottom:1px solid var(--border); }
+    .panel-tab { background:none; border:none; border-bottom:2px solid transparent; color:var(--text-muted); font-family:inherit; font-size:0.84rem; font-weight:500; padding:8px 16px; cursor:pointer; transition:color 0.15s; margin-bottom:-1px; }
+    .panel-tab:hover { color:var(--text); }
+    .panel-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .tab-content { display:none; }
+    .tab-content.active { display:block; }
+
+    /* Table */
+    .data-table { width:100%; border-collapse:collapse; font-size:0.83rem; }
+    .data-table th { text-align:left; padding:9px 12px; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-muted); border-bottom:1px solid var(--border); background:var(--surface); }
+    .data-table td { padding:10px 12px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+    .data-table tr:last-child td { border-bottom:none; }
+    .data-table tr:hover td { background:var(--hover-bg); }
+
+    /* Form in panel */
+    .panel-form { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; margin-bottom:20px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; }
+    .panel-form-group { display:flex; flex-direction:column; gap:5px; flex:1; min-width:140px; }
+    .panel-form-group label { font-size:0.72rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; }
+    .panel-form-group input, .panel-form-group select { background:var(--login-input-bg); border:1px solid var(--login-input-bdr); border-radius:8px; color:var(--text); font-size:0.85rem; font-family:inherit; padding:8px 10px; outline:none; transition:border-color 0.2s; }
+    .panel-form-group input:focus, .panel-form-group select:focus { border-color:var(--accent); }
+    .panel-form-group select option { background:var(--surface); }
+    .panel-btn { background:linear-gradient(135deg,#3F51B5,#FF9933); border:none; border-radius:8px; color:#fff; font-size:0.83rem; font-family:inherit; font-weight:600; padding:9px 18px; cursor:pointer; transition:box-shadow 0.2s,opacity 0.2s; white-space:nowrap; align-self:flex-end; }
+    .panel-btn:hover { box-shadow:0 0 14px rgba(63,81,181,0.45); opacity:0.92; }
+    .panel-btn.danger { background:#ef4444; }
+    .panel-btn.danger:hover { background:#dc2626; }
+    .panel-btn.secondary { background:var(--surface2); color:var(--text); }
+    .panel-btn.secondary:hover { background:var(--border); }
+
+    /* Plan cards */
+    .plan-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom:24px; }
+    .plan-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; display:flex; flex-direction:column; gap:10px; transition:border-color 0.2s; }
+    .plan-card.highlighted { border-color:var(--accent); box-shadow:0 0 0 2px rgba(16,163,127,0.12); }
+    .plan-card-name { font-size:1rem; font-weight:700; color:var(--text); }
+    .plan-card-price { font-size:1.4rem; font-weight:700; color:var(--accent); }
+    .plan-card-price span { font-size:0.75rem; color:var(--text-muted); font-weight:400; }
+    .plan-card-features { list-style:none; padding:0; display:flex; flex-direction:column; gap:5px; font-size:0.8rem; color:var(--text-muted); }
+    .plan-card-features li::before { content:"✓ "; color:var(--accent); font-weight:700; }
+    .plan-card-features li.no::before { content:"✗ "; color:#ef4444; }
+    .stripe-note { font-size:0.75rem; color:var(--text-muted); background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:8px; margin-top:14px; }
+    .plan-card-cta { margin-top:auto; padding-top:14px; display:flex; flex-direction:column; gap:8px; align-items:center; }
+    .plan-current-badge { font-size:0.78rem; font-weight:600; color:#4285f4; background:rgba(66,133,244,0.1); border:1px solid rgba(66,133,244,0.3); border-radius:20px; padding:5px 14px; text-align:center; width:100%; }
+    .plan-subscribe-btn { width:100%; padding:9px 16px; border:none; border-radius:50px; font-size:0.82rem; font-weight:600; cursor:pointer; transition:opacity 0.2s,box-shadow 0.2s; }
+    .plan-subscribe-btn[data-plan="basic"]   { background:#4285f4; color:#fff; box-shadow:0 4px 12px rgba(66,133,244,0.35); }
+    .plan-subscribe-btn[data-plan="premium"] { background:linear-gradient(135deg,#3F51B5,#FF9933); color:#fff; box-shadow:0 4px 12px rgba(63,81,181,0.35); }
+    .plan-subscribe-btn:disabled { opacity:0.6; cursor:not-allowed; }
+    .plan-contact-btn { display:block; width:100%; padding:9px 16px; border:1px solid var(--border); border-radius:50px; font-size:0.82rem; font-weight:600; color:var(--text-muted); text-align:center; text-decoration:none; transition:border-color 0.2s; }
+    .plan-contact-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .stripe-manage-section { display:flex; align-items:center; gap:12px; margin-top:14px; padding:12px 16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; }
+    .manage-sub-btn { padding:8px 18px; border:1px solid var(--accent); border-radius:50px; background:transparent; color:var(--accent); font-size:0.82rem; font-weight:600; cursor:pointer; transition:background 0.2s; }
+    .manage-sub-btn:hover { background:var(--indigo-light); }
+    .stripe-sub-status { font-size:0.78rem; color:var(--text-muted); }
+
+    /* Stats */
+    .stat-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:20px; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; }
+    .stat-card-label { font-size:0.68rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px; }
+    .stat-card-value { font-size:1.5rem; font-weight:700; color:var(--text); }
+
+    /* Org panel */
+    .org-field { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+    .org-field label { font-size:0.78rem; color:var(--text-muted); font-weight:600; }
+    .org-field input { background:var(--login-input-bg); border:1px solid var(--login-input-bdr); border-radius:10px; color:var(--text); font-size:0.91rem; font-family:inherit; padding:10px 13px; outline:none; transition:border-color 0.2s; max-width:400px; }
+    .org-field input:focus { border-color:var(--accent); }
+    .section-title { font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-muted); margin:20px 0 10px; }
+
+    /* Sidebar panel nav buttons */
+    #sidebar-panels { border-top:1px solid var(--border); padding:6px 4px 2px; display:none; flex-direction:column; gap:1px; }
+    #sidebar-panels.visible { display:flex; }
+
     /* ══ LOGIN ══ */
-    #login-screen { position:fixed; inset:0; z-index:999; background:var(--login-bg); display:flex; align-items:center; justify-content:center; }
+    #login-screen { position:fixed; inset:0; z-index:999; background:#f5f6ff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; overflow:hidden; }
+    [data-theme="dark"] #login-screen { background:#191a2e; }
     #login-screen.hidden { display:none; }
-    .login-card { background:var(--login-card-bg); border:1px solid var(--border); border-radius:16px; padding:38px 34px; width:100%; max-width:370px; display:flex; flex-direction:column; gap:18px; }
-    .login-brand { display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:4px; }
-    .login-brand .logo-icon { width:50px; height:50px; border-radius:12px; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:24px; }
-    .login-brand h1 { font-size:1.25rem; font-weight:700; color:var(--text); }
-    .login-brand p  { font-size:0.8rem; color:var(--text-muted); text-align:center; }
-    .login-field { display:flex; flex-direction:column; gap:6px; }
-    .login-field label { font-size:0.8rem; color:var(--text-muted); font-weight:500; }
-    .login-field input { background:var(--login-input-bg); border:1px solid var(--login-input-bdr); border-radius:10px; color:var(--text); font-size:0.91rem; font-family:inherit; padding:10px 13px; outline:none; transition:border-color 0.2s; }
-    .login-field input:focus { border-color:var(--accent); }
-    .login-field input::placeholder { color:var(--text-muted); }
-    #login-btn { background:var(--accent); border:none; border-radius:10px; color:#fff; font-size:0.91rem; font-family:inherit; font-weight:600; padding:11px; cursor:pointer; transition:background 0.2s; margin-top:4px; }
-    #login-btn:hover { background:var(--accent-h); }
-    #login-btn:disabled { opacity:0.6; cursor:not-allowed; }
-    #login-error { font-size:0.78rem; color:#fca5a5; text-align:center; min-height:18px; }
+    .login-card { background:transparent; width:100%; max-width:420px; padding:0 36px 36px; display:flex; flex-direction:column; align-items:center; }
+    .login-brand { display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; text-align:center; }
+    .login-brand .logo-icon { width:72px; height:72px; border-radius:22px; background:linear-gradient(135deg,#3F51B5 0%,#FF9933 100%); display:flex; align-items:center; justify-content:center; font-size:34px; box-shadow:0 8px 28px rgba(63,81,181,0.35); }
+    .login-brand h1 { font-size:1rem; font-weight:600; color:#94a3b8; letter-spacing:3px; text-transform:uppercase; margin:0; }
+    @keyframes cursor-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .login-protocol-text { min-height:1.4em; }
+    .login-protocol-cursor { display:inline-block; width:2px; height:1em; background:#3F51B5; margin-left:2px; vertical-align:middle; animation:cursor-blink 0.7s infinite; }
+    @keyframes exo-color-flow {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+    .login-exo-name {
+      font-size:24px !important; font-weight:900; letter-spacing:5px; white-space:nowrap;
+      font-family:'Segoe UI',sans-serif; line-height:1.2;
+      margin:2px 0 0 !important; display:inline-block;
+      background: linear-gradient(90deg, #3F51B5, #FF9933, #FFD700, #3F51B5, #FF9933);
+      background-size: 300% 100%;
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+      animation: exo-color-flow 20s linear infinite;
+      filter: drop-shadow(2px 2px 0px rgba(63,81,181,0.4)) drop-shadow(4px 4px 0px rgba(255,153,51,0.2)) drop-shadow(6px 6px 8px rgba(63,81,181,0.1));
+    }
+    .login-brand p { font-size:0.87rem; color:#64748b; text-align:center; margin:0; }
+    [data-theme="dark"] .login-brand p { color:#94a3b8; }
+    #google-btn { width:100%; display:flex; align-items:center; justify-content:center; gap:10px; background:#3F51B5; border:none; border-radius:50px; color:#fff; font-family:inherit; font-size:0.94rem; font-weight:600; padding:13px 20px; cursor:pointer; transition:all 0.2s; margin-bottom:22px; }
+    #google-btn:hover { background:#3748a3; }
+    [data-theme="dark"] #google-btn { background:#3F51B5; color:#fff; }
+    #google-btn svg { width:18px; height:18px; flex-shrink:0; }
+    .login-divider { width:100%; display:flex; align-items:center; gap:10px; margin-bottom:22px; }
+    .login-divider::before,.login-divider::after { content:""; flex:1; height:1px; background:#e4e7f0; }
+    [data-theme="dark"] .login-divider::before,[data-theme="dark"] .login-divider::after { background:rgba(255,255,255,0.1); }
+    .login-divider span { font-size:0.66rem; font-weight:700; color:#94a3b8; letter-spacing:0.8px; white-space:nowrap; }
+    .login-fields { width:100%; display:flex; flex-direction:column; gap:16px; margin-bottom:18px; }
+    .login-field { display:flex; flex-direction:column; gap:6px; width:100%; }
+    .login-field label { font-size:0.83rem; color:#475569; font-weight:600; }
+    [data-theme="dark"] .login-field label { color:#94a3b8; }
+    .login-field input { background:#fff; border:1.5px solid #e4e7f0; border-radius:50px; color:#0f172a; font-size:0.91rem; font-family:inherit; padding:12px 20px; outline:none; transition:border-color 0.2s,box-shadow 0.2s; width:100%; }
+    [data-theme="dark"] .login-field input { background:#252640; border-color:rgba(255,255,255,0.1); color:#f1f5f9; }
+    .login-field input:focus { border-color:#3F51B5; box-shadow:0 0 0 3px rgba(63,81,181,0.12); }
+    .login-field input::placeholder { color:#94a3b8; }
+    .login-tabs { display:flex; gap:4px; margin-bottom:18px; background:rgba(255,255,255,0.06); border-radius:10px; padding:4px; }
+    .login-tab { flex:1; background:none; border:none; border-radius:7px; color:#94a3b8; font-family:inherit; font-size:0.84rem; font-weight:600; padding:8px; cursor:pointer; transition:background 0.15s,color 0.15s; }
+    .login-tab.active { background:#3F51B5; color:#fff; }
+    [data-theme="light"] .login-tabs { background:rgba(0,0,0,0.06); }
+    [data-theme="light"] .login-tab { color:#64748b; }
+    #login-btn { width:100%; background:#FF9933; border:none; border-radius:50px; color:#fff; font-size:0.94rem; font-family:inherit; font-weight:700; padding:13px; cursor:pointer; transition:box-shadow 0.2s,opacity 0.2s; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:6px; box-shadow:0 4px 18px rgba(255,153,51,0.35); }
+    #login-btn:hover:not(:disabled) { box-shadow:0 6px 24px rgba(255,153,51,0.5); opacity:0.93; }
+    #login-btn:disabled { opacity:0.55; cursor:not-allowed; }
+    #register-btn { width:100%; background:linear-gradient(135deg,#3F51B5,#FF9933); border:none; border-radius:50px; color:#fff; font-size:0.94rem; font-family:inherit; font-weight:700; padding:13px; cursor:pointer; transition:box-shadow 0.2s,opacity 0.2s; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:6px; box-shadow:0 4px 18px rgba(63,81,181,0.35); }
+    #register-btn:hover:not(:disabled) { box-shadow:0 6px 24px rgba(63,81,181,0.5); opacity:0.93; }
+    #register-btn:disabled { opacity:0.55; cursor:not-allowed; }
+    #login-error, #register-error { font-size:0.78rem; color:#ef4444; text-align:center; min-height:20px; width:100%; margin-bottom:4px; }
+    .login-footer-note { font-size:0.74rem; color:#94a3b8; text-align:center; margin-top:18px; line-height:1.7; }
+    .login-footer-note a { color:#3F51B5; text-decoration:underline; text-underline-offset:2px; cursor:pointer; }
+    .login-footer-note a:hover { color:#FF9933; }
+
+    /* ══ CHAKRA SPIN ══ */
+    @keyframes chakra-spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+    .chakra-svg { animation:chakra-spin 12s linear infinite; transform-origin:50% 50%; display:block; }
+    #chat-watermark { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:0.045; pointer-events:none; z-index:0; }
+    .sidebar-logo span { overflow:visible !important; }
 
     /* ══ DRAG ══ */
     #drop-overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(16,163,127,0.1); backdrop-filter:blur(4px); border:3px dashed var(--accent); border-radius:16px; margin:12px; flex-direction:column; align-items:center; justify-content:center; gap:14px; pointer-events:none; }
@@ -322,22 +579,93 @@
 
 <!-- LOGIN -->
 <div id="login-screen">
+  <div class="login-brand">
+    <div class="logo-icon">
+        <svg class="chakra-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="46" height="46">
+          <defs>
+            <linearGradient id="chakraBg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#3F51B5"/>
+              <stop offset="100%" stop-color="#FF9933"/>
+            </linearGradient>
+          </defs>
+          <!-- Outer 8-point star (flame tips) -->
+          <polygon points="96,50 85,65 83,83 65,85 50,96 35,85 17,83 15,65 4,50 15,35 17,17 35,15 50,4 65,15 83,17 85,35" fill="#FFD700"/>
+          <!-- Inner disc cutout matches gradient bg -->
+          <circle cx="50" cy="50" r="36" fill="url(#chakraBg)"/>
+          <!-- Middle ring -->
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#FFD700" stroke-width="2.5"/>
+          <!-- 8 Spokes -->
+          <line x1="62" y1="50" x2="86" y2="50" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="58.5" y1="58.5" x2="75.5" y2="75.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="50" y1="62" x2="50" y2="86" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="41.5" y1="58.5" x2="24.5" y2="75.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="38" y1="50" x2="14" y2="50" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="41.5" y1="41.5" x2="24.5" y2="24.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="50" y1="38" x2="50" y2="14" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+          <line x1="58.5" y1="41.5" x2="75.5" y2="24.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+          <!-- Center hub -->
+          <circle cx="50" cy="50" r="11" fill="#FFD700"/>
+          <circle cx="50" cy="50" r="6" fill="url(#chakraBg)"/>
+          <circle cx="50" cy="50" r="3" fill="#FFD700"/>
+        </svg>
+      </div>
+      <h1 class="login-protocol-text" id="login-protocol-text"><span class="login-protocol-cursor"></span></h1>
+      <p class="login-exo-name">ＡＩ　ＥＸＯＶＥＲＳＥ</p>
+      <p>Choose how you would like to sign in</p>
+  </div>
   <div class="login-card">
-    <div class="login-brand">
-      <div class="logo-icon">✨</div>
-      <h1>BK AI Agent</h1>
-      <p>Sign in to continue</p>
+
+    <!-- Tabs -->
+    <div class="login-tabs">
+      <button class="login-tab active" id="tab-signin" onclick="switchLoginTab('signin')">Sign In</button>
+      <button class="login-tab" id="tab-signup" onclick="switchLoginTab('signup')">Sign Up</button>
     </div>
-    <div class="login-field">
-      <label for="login-username">Username</label>
-      <input id="login-username" type="text" placeholder="Enter username" autocomplete="username" />
+
+    <!-- Sign In Form -->
+    <div id="form-signin">
+      <div class="login-fields">
+        <div class="login-field">
+          <label for="login-username">Username</label>
+          <input id="login-username" type="text" placeholder="Enter your username" autocomplete="username" />
+        </div>
+        <div class="login-field">
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" placeholder="Enter your password" autocomplete="current-password" />
+        </div>
+      </div>
+      <div id="login-error"></div>
+      <button id="login-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Sign in
+      </button>
     </div>
-    <div class="login-field">
-      <label for="login-password">Password</label>
-      <input id="login-password" type="password" placeholder="Enter password" autocomplete="current-password" />
+
+    <!-- Sign Up Form -->
+    <div id="form-signup" style="display:none">
+      <div class="login-fields">
+        <div class="login-field">
+          <label for="reg-username">Username</label>
+          <input id="reg-username" type="text" placeholder="Choose a username (min 3 chars)" autocomplete="off" />
+        </div>
+        <div class="login-field">
+          <label for="reg-password">Password</label>
+          <input id="reg-password" type="password" placeholder="Choose a password (min 6 chars)" autocomplete="new-password" />
+        </div>
+        <div class="login-field">
+          <label for="reg-confirm">Confirm Password</label>
+          <input id="reg-confirm" type="password" placeholder="Repeat your password" autocomplete="new-password" />
+        </div>
+      </div>
+      <div id="register-error"></div>
+      <button id="register-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        Create Account — Free
+      </button>
     </div>
-    <div id="login-error"></div>
-    <button id="login-btn">Sign in</button>
+
+    <p class="login-footer-note">
+      By continuing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+    </p>
   </div>
 </div>
 
@@ -351,7 +679,32 @@
 <!-- SIDEBAR -->
 <div id="sidebar">
   <div id="sidebar-header">
-    <div class="sidebar-logo"><span>✨</span> BK AI Agent</div>
+    <div class="sidebar-logo">
+      <span>
+        <svg class="chakra-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+          <polygon points="96,50 85,65 83,83 65,85 50,96 35,85 17,83 15,65 4,50 15,35 17,17 35,15 50,4 65,15 83,17 85,35" fill="#FFD700"/>
+          <circle cx="50" cy="50" r="36" fill="#3F51B5"/>
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#FFD700" stroke-width="3"/>
+          <line x1="62" y1="50" x2="86" y2="50" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+          <line x1="58.5" y1="58.5" x2="75.5" y2="75.5" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+          <line x1="50" y1="62" x2="50" y2="86" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+          <line x1="41.5" y1="58.5" x2="24.5" y2="75.5" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+          <line x1="38" y1="50" x2="14" y2="50" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+          <line x1="41.5" y1="41.5" x2="24.5" y2="24.5" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+          <line x1="50" y1="38" x2="50" y2="14" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+          <line x1="58.5" y1="41.5" x2="75.5" y2="24.5" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="50" cy="50" r="11" fill="#FFD700"/>
+          <circle cx="50" cy="50" r="5" fill="#3F51B5"/>
+          <circle cx="50" cy="50" r="2.5" fill="#FFD700"/>
+        </svg>
+      </span>
+      AI EXOVERSE
+    </div>
+    <button id="sidebar-toggle-btn" title="Close sidebar (Shift+O)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
+      </svg>
+    </button>
   </div>
   <button id="new-chat-btn">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -373,15 +726,15 @@
       <!-- Today's usage -->
       <div class="tok-title" style="margin-bottom:6px;">Today</div>
       <div class="tok-row">
-        <span class="tok-label"><span class="tok-dot" style="background:var(--gemini-color)"></span>Gemini</span>
+        <span class="tok-label"><span class="tok-dot" style="background:#3F51B5"></span>Gemini</span>
         <span class="tok-val"><span id="tok-gemini">0</span> · <span id="cost-today-gemini" style="color:var(--text-muted);font-weight:400;">$0.00</span></span>
       </div>
       <div class="tok-row">
-        <span class="tok-label"><span class="tok-dot" style="background:var(--gpt-color)"></span>ChatGPT</span>
+        <span class="tok-label"><span class="tok-dot" style="background:#3F51B5"></span>ChatGPT</span>
         <span class="tok-val"><span id="tok-gpt">0</span> · <span id="cost-today-gpt" style="color:var(--text-muted);font-weight:400;">$0.00</span></span>
       </div>
       <div class="tok-row">
-        <span class="tok-label"><span class="tok-dot" style="background:var(--claude-color)"></span>Claude</span>
+        <span class="tok-label"><span class="tok-dot" style="background:#3F51B5"></span>Claude</span>
         <span class="tok-val"><span id="tok-claude">0</span> · <span id="cost-today-claude" style="color:var(--text-muted);font-weight:400;">$0.00</span></span>
       </div>
 
@@ -401,10 +754,43 @@
           <span class="cost-val" id="cost-this-year">$0.00</span>
         </div>
       </div>
+      <!-- Cycle budget widget (hidden for free/enterprise) -->
+      <div class="cycle-budget-section" id="cycle-budget-section" style="display:none;">
+        <div class="tok-title" style="margin-bottom:5px;">Cycle Budget</div>
+        <div class="cost-row">
+          <span class="cost-lbl">Spent</span>
+          <span class="cost-val" id="budget-spent-sidebar">—</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-lbl">Remaining</span>
+          <span class="cost-val" id="budget-remaining-sidebar">—</span>
+        </div>
+        <div style="margin-top:5px;">
+          <div style="height:4px;background:var(--border);border-radius:3px;overflow:hidden;">
+            <div id="budget-sidebar-bar" style="height:100%;border-radius:3px;width:0%;transition:width 0.4s,background 0.4s;background:#22c55e;"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- Admin / Org panel nav (shown after login) -->
+  <div id="sidebar-panels">
+    <button id="admin-panel-btn" class="sidebar-footer-btn" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><circle cx="18" cy="8" r="2" fill="currentColor" stroke="none"/><path d="M18 6v4M16 8h4"/></svg>
+      Admin Panel
+    </button>
+    <button id="org-panel-btn" class="sidebar-footer-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+      Organization
+    </button>
+  </div>
+
   <div id="sidebar-footer">
+    <div id="sidebar-user-info">
+      <span id="sidebar-username">User</span>
+      <span id="sidebar-plan-badge" class="plan-badge plan-free">Free</span>
+    </div>
     <button id="logout-btn" class="sidebar-footer-btn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Sign out
@@ -419,6 +805,11 @@
 <!-- MAIN -->
 <div id="main">
   <div id="topbar">
+    <button id="sidebar-open-btn" title="Open sidebar (Shift+O)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
+      </svg>
+    </button>
     <button id="hamburger" title="Toggle sidebar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
@@ -427,8 +818,9 @@
     <div id="model-switcher">
       <button class="model-tab gemini-tab active"       data-model="gemini">✨ <span>Gemini</span></button>
       <button class="model-tab gpt-tab unavailable"     data-model="gpt">💬 <span>ChatGPT</span></button>
-      <button class="model-tab claude-tab unavailable"  data-model="claude">◆ <span>Claude</span></button>
-      <button class="model-tab compare-tab unavailable" data-model="compare">⊞ <span>Compare</span></button>
+      <button class="model-tab claude-tab unavailable"    data-model="claude">◆ <span>Claude</span></button>
+      <button class="model-tab deepseek-tab unavailable" data-model="deepseek">🔵 <span>DeepSeek</span></button>
+      <button class="model-tab compare-tab unavailable"  data-model="compare">⊞ <span>Compare</span></button>
       <button class="model-tab incognito-tab"           data-model="incognito">🕵️ <span>Incognito</span></button>
     </div>
     <div id="topbar-right">
@@ -439,8 +831,15 @@
       </button>
       <button id="sources-toggle" title="Show sources">🔗 Sources <span class="src-count" id="src-count">0</span></button>
       <button id="theme-btn" title="Toggle light/dark">🌙</button>
+      <a href="/landing.html#pricing" target="_blank" id="pricing-help-btn" title="View plans & pricing">?</a>
       <div id="status-dot" title="Server online"></div>
     </div>
+  </div>
+
+  <!-- Model version selector (Gemini / ChatGPT premium) -->
+  <div id="model-version-bar">
+    <span class="mvb-label">Version</span>
+    <div id="mvb-options"></div>
   </div>
 
   <!-- Compare sub-mode selector -->
@@ -451,11 +850,49 @@
     <button class="cmp-mode-btn" data-mode="all">Compare All</button>
   </div>
 
+  <!-- Budget warning banner -->
+  <div id="budget-banner" style="display:none;align-items:center;gap:10px;padding:7px 14px;flex-shrink:0;border-bottom:1px solid var(--border);font-size:0.78rem;">
+    <span id="budget-banner-icon" style="font-size:1rem;flex-shrink:0;"></span>
+    <span id="budget-banner-text" style="flex:1;"></span>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+      <div id="budget-progress-outer" style="width:100px;height:5px;background:var(--border);border-radius:3px;">
+        <div id="budget-progress-inner" style="height:100%;border-radius:3px;transition:width 0.4s,background 0.4s;width:0%;"></div>
+      </div>
+      <span id="budget-progress-label" style="font-size:0.7rem;color:var(--text-muted);white-space:nowrap;min-width:80px;text-align:right;font-variant-numeric:tabular-nums;"></span>
+    </div>
+  </div>
+
   <!-- Compare column headers -->
   <div id="compare-header">
     <div class="compare-col-label gemini-col-label"><span class="col-dot"></span> Gemini 3.1 Pro</div>
     <div class="compare-col-label gpt-col-label"><span class="col-dot"></span> ChatGPT 5 Search</div>
     <div class="compare-col-label claude-col-label"><span class="col-dot"></span> Claude Sonnet 4.6</div>
+  </div>
+
+  <!-- Watermark chakra -->
+  <div id="chat-watermark">
+    <svg class="chakra-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="300" height="300">
+      <defs>
+        <linearGradient id="wmarkGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#3F51B5"/>
+          <stop offset="100%" stop-color="#FF9933"/>
+        </linearGradient>
+      </defs>
+      <polygon points="96,50 85,65 83,83 65,85 50,96 35,85 17,83 15,65 4,50 15,35 17,17 35,15 50,4 65,15 83,17 85,35" fill="#FFD700"/>
+      <circle cx="50" cy="50" r="36" fill="url(#wmarkGrad)"/>
+      <circle cx="50" cy="50" r="36" fill="none" stroke="#FFD700" stroke-width="2.5"/>
+      <line x1="62" y1="50" x2="86" y2="50" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="58.5" y1="58.5" x2="75.5" y2="75.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="50" y1="62" x2="50" y2="86" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="41.5" y1="58.5" x2="24.5" y2="75.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="38" y1="50" x2="14" y2="50" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="41.5" y1="41.5" x2="24.5" y2="24.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="50" y1="38" x2="50" y2="14" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="58.5" y1="41.5" x2="75.5" y2="24.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="50" cy="50" r="11" fill="#FFD700"/>
+      <circle cx="50" cy="50" r="6" fill="url(#wmarkGrad)"/>
+      <circle cx="50" cy="50" r="3" fill="#FFD700"/>
+    </svg>
   </div>
 
   <!-- Normal single-column chat -->
@@ -522,6 +959,188 @@
   </div>
 </div>
 
+<!-- ══ ADMIN PANEL OVERLAY ══ -->
+<div id="admin-panel" class="panel-overlay">
+  <div class="panel-header">
+    <h2>⚙️ Admin Panel</h2>
+    <button class="panel-close-btn" id="admin-panel-close">✕</button>
+  </div>
+  <div class="panel-body">
+    <div class="panel-tabs">
+      <button class="panel-tab active" data-tab="users-tab">Users</button>
+      <button class="panel-tab" data-tab="subscriptions-tab">Subscriptions</button>
+      <button class="panel-tab" data-tab="stats-tab">Stats</button>
+      <button class="panel-tab" data-tab="budget-tab">💰 Budget</button>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="users-tab" class="tab-content active">
+      <div class="panel-form" id="add-user-form">
+        <div class="panel-form-group">
+          <label>Username</label>
+          <input type="text" id="new-username" placeholder="e.g. john" autocomplete="off">
+        </div>
+        <div class="panel-form-group">
+          <label>Password</label>
+          <input type="password" id="new-password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <div class="panel-form-group" style="flex:0;min-width:110px;">
+          <label>Role</label>
+          <select id="new-role"><option value="user">User</option><option value="admin">Admin</option></select>
+        </div>
+        <div class="panel-form-group" style="flex:0;min-width:130px;">
+          <label>Plan</label>
+          <select id="new-plan">
+            <option value="free">Free</option>
+            <option value="basic">Basic</option>
+            <option value="premium">Premium</option>
+            <option value="enterprise">Enterprise</option>
+          </select>
+        </div>
+        <button class="panel-btn" id="add-user-btn">+ Add User</button>
+      </div>
+      <div id="add-user-error" style="color:#fca5a5;font-size:0.8rem;margin-bottom:12px;display:none;"></div>
+      <table class="data-table" id="users-table">
+        <thead><tr>
+          <th>Username</th><th>Role</th><th>Plan</th><th>Status</th><th>Created</th><th>Last Login</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Subscriptions Tab -->
+    <div id="subscriptions-tab" class="tab-content">
+      <div class="plan-cards" id="plan-cards-container">
+        <div class="plan-card" data-plan="free">
+          <div class="plan-card-name">Free</div>
+          <div class="plan-card-price">$0<span>/mo</span></div>
+          <ul class="plan-card-features">
+            <li>Gemini 2.5 Flash Lite</li>
+            <li class="no">ChatGPT</li>
+            <li class="no">Claude</li>
+            <li class="no">DeepSeek</li>
+            <li>50,000 tokens/day</li>
+          </ul>
+          <div class="plan-card-cta">
+            <div class="plan-current-badge" style="display:none;">✓ Current Plan</div>
+          </div>
+        </div>
+        <div class="plan-card highlighted" data-plan="basic">
+          <div class="plan-card-name">Basic</div>
+          <div class="plan-card-price">$3.99<span>/mo</span></div>
+          <ul class="plan-card-features">
+            <li>Gemini 2.5 Flash Lite (62,500/day)</li>
+            <li>GPT-4.1 mini (41,667/day)</li>
+            <li>DeepSeek V3.2 (62,500/day)</li>
+            <li class="no">Claude</li>
+            <li>150,000 total tokens/day</li>
+            <li>~5M tokens/month</li>
+          </ul>
+          <div class="plan-card-cta">
+            <div class="plan-current-badge" style="display:none;">✓ Current Plan</div>
+            <button class="plan-subscribe-btn" data-plan="basic">Get Started — $3.99/mo</button>
+          </div>
+        </div>
+        <div class="plan-card" data-plan="premium">
+          <div class="plan-card-name">Premium</div>
+          <div class="plan-card-price">$8.99<span>/mo</span></div>
+          <ul class="plan-card-features">
+            <li>Gemini 3.1 Pro (200k/day)</li>
+            <li>GPT-5 Search API (150k/day)</li>
+            <li>Claude Sonnet 4.6 (150k/day)</li>
+            <li>DeepSeek V3.2 (150k/day)</li>
+            <li>500,000 total tokens/day</li>
+            <li>Compare mode</li>
+          </ul>
+          <div class="plan-card-cta">
+            <div class="plan-current-badge" style="display:none;">✓ Current Plan</div>
+            <button class="plan-subscribe-btn" data-plan="premium">Go Premium — $8.99/mo</button>
+          </div>
+        </div>
+        <div class="plan-card" data-plan="enterprise">
+          <div class="plan-card-name">Enterprise</div>
+          <div class="plan-card-price">Custom</div>
+          <ul class="plan-card-features">
+            <li>All models (premium versions)</li>
+            <li>Unlimited tokens</li>
+            <li>Admin panel</li>
+            <li>Organization panel</li>
+            <li>Priority support</li>
+          </ul>
+          <div class="plan-card-cta">
+            <div class="plan-current-badge" style="display:none;">✓ Current Plan</div>
+            <a class="plan-contact-btn" href="mailto:hello@ascend.ai">Contact Sales</a>
+          </div>
+        </div>
+      </div>
+      <div class="stripe-manage-section" id="stripe-manage-section" style="display:none;">
+        <button class="manage-sub-btn" id="manage-sub-btn">⚙️ Manage Subscription</button>
+        <span class="stripe-sub-status" id="stripe-sub-status"></span>
+      </div>
+      <div class="stripe-note" id="stripe-note-el">
+        💳 <span>Secure payments powered by Stripe. Cancel anytime.</span>
+      </div>
+    </div>
+
+    <!-- Stats Tab -->
+    <div id="stats-tab" class="tab-content">
+      <div class="stat-cards" id="stats-cards">
+        <div class="stat-card"><div class="stat-card-label">Total Users</div><div class="stat-card-value" id="stat-total-users">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Active Users</div><div class="stat-card-value" id="stat-active-users">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Admin Users</div><div class="stat-card-value" id="stat-admin-users">—</div></div>
+        <div class="stat-card"><div class="stat-card-label">Pro+ Users</div><div class="stat-card-value" id="stat-pro-users">—</div></div>
+      </div>
+    </div>
+
+    <!-- Budget Tab -->
+    <div id="budget-tab" class="tab-content">
+      <div class="budget-stat-cards">
+        <div class="budget-stat-card"><div class="bsc-label">Spend Today</div><div class="bsc-val" id="bsc-today">—</div></div>
+        <div class="budget-stat-card"><div class="bsc-label">Total All Users</div><div class="bsc-val" id="bsc-total">—</div></div>
+        <div class="budget-stat-card"><div class="bsc-label">At Warning</div><div class="bsc-val" id="bsc-warning" style="color:#f59e0b;">—</div></div>
+        <div class="budget-stat-card"><div class="bsc-label">At Limit</div><div class="bsc-val" id="bsc-limit" style="color:#ef4444;">—</div></div>
+      </div>
+      <div id="spending-chart-wrap">
+        <div id="spending-chart-title">Daily Spend — Last 30 Days</div>
+        <canvas id="spending-chart" height="120"></canvas>
+      </div>
+      <div class="section-title" style="margin-bottom:10px;">Per-User Budget</div>
+      <table class="data-table" id="budget-user-table">
+        <thead><tr>
+          <th>User</th><th>Plan</th><th>Spent</th><th>Budget</th><th>Usage</th><th>Cycle Start</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="budget-user-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ORG PANEL OVERLAY ══ -->
+<div id="org-panel" class="panel-overlay">
+  <div class="panel-header">
+    <h2>🏢 Organization</h2>
+    <button class="panel-close-btn" id="org-panel-close">✕</button>
+  </div>
+  <div class="panel-body">
+    <div class="org-field">
+      <label>Organization Name</label>
+      <input type="text" id="org-name-input" placeholder="e.g. AI EXO verse" />
+    </div>
+    <div class="org-field">
+      <label>Logo / Emoji</label>
+      <input type="text" id="org-logo-input" placeholder="e.g. 🤖" maxlength="4" style="max-width:100px;" />
+    </div>
+    <button class="panel-btn" id="save-org-btn" style="margin-bottom:28px;">Save Changes</button>
+    <div id="org-save-msg" style="font-size:0.8rem;color:var(--accent);margin-bottom:16px;display:none;">Saved!</div>
+
+    <div class="section-title">Members</div>
+    <table class="data-table" id="org-members-table">
+      <thead><tr><th>Username</th><th>Role</th><th>Plan</th><th>Last Login</th></tr></thead>
+      <tbody id="org-members-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
 <script>
 // ── Auth ──────────────────────────────────────────────────────────────────
 const AUTH_KEY = "bk_auth_token";
@@ -545,13 +1164,62 @@ async function doLogin() {
     const res=await fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});
     const data=await res.json();
     if(!res.ok){loginError.textContent=data.error||"Login failed.";return;}
-    authToken=data.token; localStorage.setItem(AUTH_KEY,authToken); hideLogin(); checkConfig();
+    authToken=data.token; localStorage.setItem(AUTH_KEY,authToken);
+    localStorage.setItem("bk_role",data.role||"user");
+    localStorage.setItem("bk_plan",data.plan||"free");
+    localStorage.setItem("bk_username",data.username||"");
+    hideLogin(); checkConfig(); updateUserInfo(); updatePlanCardUI(); refreshBudgetStatus();
   } catch {loginError.textContent="Could not reach server.";}
   finally {loginBtn.disabled=false;loginBtn.textContent="Sign in";}
 }
 loginBtn.addEventListener("click",doLogin);
 [loginUserEl,loginPassEl].forEach(el=>el.addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();}));
-logoutBtn.addEventListener("click",()=>{authToken="";localStorage.removeItem(AUTH_KEY);localStorage.removeItem(LS_KEY);location.reload();});
+
+// ── Tab switcher ────────────────────────────────────────────────────────────
+function switchLoginTab(tab) {
+  document.getElementById("form-signin").style.display = tab==="signin" ? "" : "none";
+  document.getElementById("form-signup").style.display = tab==="signup" ? "" : "none";
+  document.getElementById("tab-signin").classList.toggle("active", tab==="signin");
+  document.getElementById("tab-signup").classList.toggle("active", tab==="signup");
+  document.getElementById("login-error").textContent = "";
+  document.getElementById("register-error").textContent = "";
+}
+
+// ── Register ─────────────────────────────────────────────────────────────────
+const regBtn = document.getElementById("register-btn");
+const regError = document.getElementById("register-error");
+async function doRegister() {
+  const username = document.getElementById("reg-username").value.trim();
+  const password = document.getElementById("reg-password").value;
+  const confirm  = document.getElementById("reg-confirm").value;
+  regError.textContent = "";
+  if (!username || !password) { regError.textContent = "Please fill in all fields."; return; }
+  if (username.length < 3) { regError.textContent = "Username must be at least 3 characters."; return; }
+  if (password.length < 6) { regError.textContent = "Password must be at least 6 characters."; return; }
+  if (password !== confirm) { regError.textContent = "Passwords do not match."; return; }
+  regBtn.disabled = true; regBtn.innerHTML = "Creating account…";
+  try {
+    const res = await fetch("/api/register", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ username, password }) });
+    const data = await res.json();
+    if (!res.ok) { regError.textContent = data.error || "Registration failed."; return; }
+    authToken = data.token; localStorage.setItem(AUTH_KEY, authToken);
+    localStorage.setItem("bk_role", data.role || "user");
+    localStorage.setItem("bk_plan", data.plan || "free");
+    localStorage.setItem("bk_username", data.username || "");
+    hideLogin(); checkConfig(); updateUserInfo(); updatePlanCardUI(); refreshBudgetStatus();
+  } catch { regError.textContent = "Could not reach server."; }
+  finally { regBtn.disabled=false; regBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Create Account — Free`; }
+}
+regBtn.addEventListener("click", doRegister);
+["reg-username","reg-password","reg-confirm"].forEach(id => {
+  document.getElementById(id).addEventListener("keydown", e => { if (e.key === "Enter") doRegister(); });
+});
+
+logoutBtn.addEventListener("click",()=>{
+  authToken="";
+  ["bk_auth_token","bk_role","bk_plan","bk_username",LS_KEY].forEach(k=>localStorage.removeItem(k));
+  location.reload();
+});
 
 // ── Theme ─────────────────────────────────────────────────────────────────
 const THEME_KEY="bk_theme";
@@ -569,6 +1237,7 @@ tokToggle.addEventListener("click",()=>{
   const open=tokDetails.style.display==="none";
   tokDetails.style.display=open?"block":"none";
   tokChevron.style.transform=open?"rotate(180deg)":"rotate(0deg)";
+  tokToggle.classList.toggle("panel-open", open);
 });
 
 // ── EST Clock ────────────────────────────────────────────────────────────
@@ -651,13 +1320,13 @@ renderCosts();
 
 // ── Constants & State ─────────────────────────────────────────────────────
 const LS_KEY="gemini_chat_history", MAX_HISTORY=40;
-let geminiHistory=loadHistory(), claudeHistory=[], gptHistory=[], incognitoHistory=[];
+let geminiHistory=loadHistory(), claudeHistory=[], gptHistory=[], deepseekHistory=[], incognitoHistory=[];
 let cmpGeminiHist=[], cmpGptHist=[], cmpClaudeHist=[];
 let isLoading=false, attachedFile=null, thinkingMode=false;
 let activeModel="gemini";
 let incognitoModel="gemini"; // which AI powers incognito
 let compareMode="all"; // "gemini-gpt"|"gemini-claude"|"gpt-claude"|"all"
-const modelNodes={gemini:[],gpt:[],claude:[]}; // saved DOM nodes per model
+const modelNodes={gemini:[],gpt:[],claude:[],deepseek:[]}; // saved DOM nodes per model
 let claudeAvailable=false, gptAvailable=false;
 let allSources=[];  // {url, domain} deduped
 
@@ -705,20 +1374,26 @@ async function checkConfig(){
     const r=await fetch("/api/config",{headers:{"Authorization":`Bearer ${authToken}`}});
     if(!r.ok)return; const cfg=await r.json();
     claudeAvailable=cfg.claudeAvailable; gptAvailable=cfg.gptAvailable;
-    if(gptAvailable){document.querySelector(".gpt-tab").classList.remove("unavailable");document.querySelector(".gpt-tab").title="Chat with ChatGPT";}
-    if(claudeAvailable){document.querySelector(".claude-tab").classList.remove("unavailable");document.querySelector(".claude-tab").title="Chat with Claude";}
-    if(gptAvailable||claudeAvailable){document.querySelector(".compare-tab").classList.remove("unavailable");document.querySelector(".compare-tab").title="Compare all models side by side";}
+    const plan=localStorage.getItem("bk_plan")||"free";
+    const planModels={free:["gemini"],basic:["gemini","gpt","deepseek"],premium:["gemini","gpt","claude","deepseek"],enterprise:["gemini","gpt","claude","deepseek"]};
+    const allowed=planModels[plan]||["gemini"];
+    if(gptAvailable&&allowed.includes("gpt")){document.querySelector(".gpt-tab").classList.remove("unavailable");}
+    if(claudeAvailable&&allowed.includes("claude")){document.querySelector(".claude-tab").classList.remove("unavailable");}
+    if(cfg.deepseekAvailable&&allowed.includes("deepseek")){document.querySelector(".deepseek-tab").classList.remove("unavailable");}
+    if((gptAvailable||claudeAvailable||cfg.deepseekAvailable)&&allowed.length>1){document.querySelector(".compare-tab").classList.remove("unavailable");}
+    updateModelVersionBar(activeModel);
   } catch {}
 }
-if(authToken) checkConfig();
+if(authToken){ checkConfig(); updateUserInfo(); }
 
 // ── Model Switcher ────────────────────────────────────────────────────────
 document.querySelectorAll(".model-tab").forEach(tab=>{
   tab.addEventListener("click",()=>{
     if(tab.classList.contains("unavailable")){
       const m=tab.dataset.model;
-      if(m==="gpt")alert("OpenAI API not configured.\nAdd OPENAI_API_KEY to .env and restart.");
-      else if(m==="claude")alert("Claude API not configured.\nAdd ANTHROPIC_API_KEY to .env and restart.");
+      if(m==="gpt")alert("ChatGPT not available on your plan or API key missing.");
+      else if(m==="claude")alert("Claude not available on your plan or API key missing.");
+      else if(m==="deepseek")alert("DeepSeek not available on your plan or API key missing.");
       else alert("No AI APIs configured for compare mode.");
       return;
     }
@@ -726,13 +1401,76 @@ document.querySelectorAll(".model-tab").forEach(tab=>{
   });
 });
 
+const plan_=localStorage.getItem("bk_plan")||"free";
+const isPremium=(plan_==="premium"||plan_==="enterprise");
 const footerTexts={
-  gemini:'<span class="model-version-badge">gemini-3.1-pro-preview</span> · Gemini can make mistakes. Enter to send · Shift+Enter for newline · 📎 attach',
-  gpt:'<span class="model-version-badge">gpt-5-search-api</span> · ChatGPT can make mistakes. Enter to send · Shift+Enter for newline · 📎 attach',
+  gemini:`<span class="model-version-badge">${isPremium?"gemini-3.1-pro-preview":"gemini-2.5-flash-lite"}</span> · Gemini can make mistakes. Enter to send · Shift+Enter for newline · 📎 attach`,
+  gpt:`<span class="model-version-badge">${isPremium?"gpt-5-search-api":"gpt-4.1-mini"}</span> · ChatGPT can make mistakes. Enter to send · Shift+Enter for newline · 📎 attach`,
   claude:'<span class="model-version-badge">claude-sonnet-4-6</span> · Claude can make mistakes. Enter to send · Shift+Enter for newline · 📎 attach',
-  compare:'<span class="model-version-badge">gemini-3.1-pro-preview</span> · <span class="model-version-badge">gpt-5-search-api</span> · <span class="model-version-badge">claude-sonnet-4-6</span> · Enter to send all at once',
-  incognito:'<span class="model-version-badge">gemini-3.1-pro-preview</span> · 🕵️ Incognito — history not saved · Enter to send · Shift+Enter for newline',
+  deepseek:'<span class="model-version-badge">deepseek-chat (V3.2)</span> · DeepSeek can make mistakes. Enter to send · Shift+Enter for newline',
+  compare:'<span class="model-version-badge">multi-model</span> · Enter to send all at once',
+  incognito:`<span class="model-version-badge">${isPremium?"gemini-3.1-pro-preview":"gemini-2.5-flash-lite"}</span> · 🕵️ Incognito — history not saved · Enter to send · Shift+Enter for newline`,
 };
+
+// ── Model version pill toggles ────────────────────────────────────────────
+let selectedGeminiModel = null;
+let selectedGptModel    = null;
+const modelVersionBar = document.getElementById("model-version-bar");
+const mvbOptions      = document.getElementById("mvb-options");
+
+const MVB_META = {
+  "gemini-2.5-flash-lite":  { icon:"✨", label:"Flash Lite",    badge:"lite", colorClass:"gemini-ver" },
+  "gemini-3.1-pro-preview": { icon:"✦",  label:"Gemini 3.1 Pro", badge:"pro",  colorClass:"gemini-ver" },
+  "gpt-4.1-mini":           { icon:"💬", label:"GPT-4.1 mini",  badge:"lite", colorClass:"gpt-ver" },
+  "gpt-5-search-api":       { icon:"🚀", label:"GPT-5 Search",  badge:"pro",  colorClass:"gpt-ver" },
+};
+
+function updateModelVersionBar(model) {
+  const curPlan = localStorage.getItem("bk_plan") || "free";
+  const premium = curPlan === "premium" || curPlan === "enterprise";
+  const basic   = curPlan === "basic";
+  let opts;
+  if (model === "gemini") {
+    opts = premium ? ["gemini-2.5-flash-lite","gemini-3.1-pro-preview"] : ["gemini-2.5-flash-lite"];
+    if (!selectedGeminiModel) selectedGeminiModel = premium ? "gemini-3.1-pro-preview" : "gemini-2.5-flash-lite";
+  } else if (model === "gpt") {
+    opts = premium ? ["gpt-4.1-mini","gpt-5-search-api"] : (basic ? ["gpt-4.1-mini"] : []);
+    if (!selectedGptModel) selectedGptModel = premium ? "gpt-5-search-api" : "gpt-4.1-mini";
+  } else { opts = []; }
+
+  if (opts.length < 2) { modelVersionBar.classList.remove("visible"); return; }
+
+  const current = model === "gemini" ? selectedGeminiModel : selectedGptModel;
+  modelVersionBar.className = "visible " + (model === "gemini" ? "gemini-mode" : "gpt-mode");
+
+  mvbOptions.innerHTML = opts.map(v => {
+    const m = MVB_META[v] || { icon:"", label:v, badge:"lite", colorClass:"gemini-ver" };
+    const active = v === current;
+    const badgeHtml = m.badge === "pro"
+      ? `<span class="mvb-pro-tag">⚡ PRO</span>`
+      : `<span class="mvb-lite-tag">LITE</span>`;
+    return `<button class="mvb-btn${active ? " active " + m.colorClass : ""}" data-val="${v}">${m.icon} ${m.label} ${badgeHtml}</button>`;
+  }).join("");
+
+  mvbOptions.querySelectorAll(".mvb-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const val = btn.dataset.val;
+      const colorClass = MVB_META[val]?.colorClass || "gemini-ver";
+      mvbOptions.querySelectorAll(".mvb-btn").forEach(b => {
+        b.className = "mvb-btn" + (b.dataset.val === val ? " active " + colorClass : "");
+      });
+      if (model === "gemini") {
+        selectedGeminiModel = val;
+        footerText.innerHTML = `<span class="model-version-badge">${val}</span> · Gemini can make mistakes. Enter to send · Shift+Enter for newline · 📎 attach`;
+      } else if (model === "gpt") {
+        selectedGptModel = val;
+        footerText.innerHTML = `<span class="model-version-badge">${val}</span> · ChatGPT can make mistakes. Enter to send · Shift+Enter for newline · 📎 attach`;
+      }
+    });
+  });
+}
+// Init for the default active tab on page load
+updateModelVersionBar("gemini");
 
 // ── Sources panel ─────────────────────────────────────────────────────────
 document.getElementById("sources-toggle").addEventListener("click",()=>{
@@ -866,10 +1604,11 @@ function switchModel(model){
     activeModel=model;
     chatWindow.style.display=""; cmpPanels.classList.remove("visible"); compareHeader.classList.remove("visible"); cmpModeBar.classList.remove("visible");
     restoreNodes(model);
-    const names={gemini:"Gemini",gpt:"ChatGPT",claude:"Claude"};
+    const names={gemini:"Gemini",gpt:"ChatGPT",claude:"Claude",deepseek:"DeepSeek"};
     msgInput.placeholder=`Message ${names[model]||"Gemini"}`;
   }
   footerText.innerHTML=footerTexts[model]||footerTexts.gemini;
+  updateModelVersionBar(model);
   msgInput.focus();
 }
 
@@ -877,11 +1616,35 @@ function switchModel(model){
 hamburger.addEventListener("click",()=>{sidebar.classList.add("open");overlay.classList.add("open");});
 overlay.addEventListener("click",()=>{sidebar.classList.remove("open");overlay.classList.remove("open");});
 
+// Desktop sidebar collapse/expand
+const sidebarToggleBtn = document.getElementById("sidebar-toggle-btn");
+const sidebarOpenBtn   = document.getElementById("sidebar-open-btn");
+let sidebarCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+
+function applySidebarCollapse(animate) {
+  if (!animate) sidebar.style.transition = "none";
+  sidebar.classList.toggle("collapsed", sidebarCollapsed);
+  document.body.classList.toggle("sidebar-collapsed", sidebarCollapsed);
+  if (!animate) requestAnimationFrame(() => sidebar.style.transition = "");
+  localStorage.setItem("sidebarCollapsed", sidebarCollapsed);
+}
+applySidebarCollapse(false);
+
+sidebarToggleBtn.addEventListener("click", () => { sidebarCollapsed = true;  applySidebarCollapse(true); });
+sidebarOpenBtn.addEventListener("click",   () => { sidebarCollapsed = false; applySidebarCollapse(true); });
+
+document.addEventListener("keydown", e => {
+  if (e.shiftKey && e.key.toLowerCase() === "o" && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== "TEXTAREA" && document.activeElement.tagName !== "INPUT") {
+    sidebarCollapsed = !sidebarCollapsed;
+    applySidebarCollapse(true);
+  }
+});
+
 clearChatBtn.addEventListener("click",()=>newChatBtn.click());
 newChatBtn.addEventListener("click",()=>{
-  geminiHistory=[];saveHistory(); claudeHistory=[];gptHistory=[];incognitoHistory=[];
+  geminiHistory=[];saveHistory(); claudeHistory=[];gptHistory=[];deepseekHistory=[];incognitoHistory=[];
   cmpGeminiHist=[];cmpGptHist=[];cmpClaudeHist=[];
-  modelNodes.gemini=[];modelNodes.gpt=[];modelNodes.claude=[];
+  modelNodes.gemini=[];modelNodes.gpt=[];modelNodes.claude=[];modelNodes.deepseek=[];
   while(chatWindow.firstChild) chatWindow.removeChild(chatWindow.firstChild);
   chatWindow.appendChild(welcome);chatWindow.style.display="";
   cmpPanels.classList.remove("visible");compareHeader.classList.remove("visible");
@@ -891,6 +1654,7 @@ newChatBtn.addEventListener("click",()=>{
   incognitoBadge.classList.remove("visible");
   document.querySelectorAll(".model-tab").forEach(t=>t.classList.toggle("active",t.dataset.model==="gemini"));
   msgInput.placeholder="Message Gemini"; footerText.innerHTML=footerTexts.gemini;
+  updateModelVersionBar("gemini");
   sidebar.classList.remove("open");overlay.classList.remove("open");msgInput.focus();
 });
 
@@ -939,7 +1703,7 @@ async function submitSolo(text,fileLabel,fileForSend,model){
   const isIncognito=model==="incognito";
   const apiModel=isIncognito?incognitoModel:model;
   renderMessage("user",text,false,fileLabel,apiModel,isIncognito);
-  const hist=isIncognito?incognitoHistory:apiModel==="gemini"?geminiHistory:apiModel==="gpt"?gptHistory:claudeHistory;
+  const hist=isIncognito?incognitoHistory:apiModel==="gemini"?geminiHistory:apiModel==="gpt"?gptHistory:apiModel==="deepseek"?deepseekHistory:claudeHistory;
   const histForApi=[...hist];
   hist.push({role:"user",content:text||(fileLabel?"(file attached)":""),fileLabel});
   if(!isIncognito){
@@ -953,7 +1717,9 @@ async function submitSolo(text,fileLabel,fileForSend,model){
     fd.append("message",text);fd.append("history",JSON.stringify(histForApi));
     if(apiModel==="gemini")fd.append("thinking",thinkingMode?"true":"false");
     if(fileForSend)fd.append("file",fileForSend);
-    const ep=apiModel==="gemini"?"/api/chat":apiModel==="gpt"?"/api/chat-gpt":"/api/chat-claude";
+    if(apiModel==="gemini")fd.append("modelVersion",selectedGeminiModel);
+    else if(apiModel==="gpt")fd.append("modelVersion",selectedGptModel);
+    const ep=apiModel==="gemini"?"/api/chat":apiModel==="gpt"?"/api/chat-gpt":apiModel==="deepseek"?"/api/chat-deepseek":"/api/chat-claude";
     const res=await fetch(ep,{method:"POST",headers:{"Authorization":`Bearer ${authToken}`},body:fd});
     const data=await res.json();
     typingEl.remove();
@@ -964,6 +1730,8 @@ async function submitSolo(text,fileLabel,fileForSend,model){
       if(hist.length>MAX_HISTORY)hist.splice(0,hist.length-MAX_HISTORY);
       if(!isIncognito&&apiModel==="gemini")saveHistory();
       if(!isIncognito&&data.tokens)addTokens(apiModel==="gpt"?"gpt":apiModel,data.tokens);
+      // Live budget banner update
+      if(data.budgetStatus){ budgetStatus=data.budgetStatus; renderBudgetBanner(budgetStatus); }
       // Extract sources from rendered response
       if(msgEl){const cnt=msgEl.querySelector(".msg-content");if(cnt)extractSources(cnt.innerHTML);}
     }
@@ -972,7 +1740,7 @@ async function submitSolo(text,fileLabel,fileForSend,model){
 }
 
 // ── Compare mode ──────────────────────────────────────────────────────────
-const CMP_API={gemini:"/api/chat",gpt:"/api/chat-gpt",claude:"/api/chat-claude"};
+const CMP_API={gemini:"/api/chat",gpt:"/api/chat-gpt",claude:"/api/chat-claude",deepseek:"/api/chat-deepseek"};
 const CMP_HIST={gemini:()=>cmpGeminiHist,gpt:()=>cmpGptHist,claude:()=>cmpClaudeHist};
 const CMP_PUSH={gemini:r=>cmpGeminiHist.push(r),gpt:r=>cmpGptHist.push(r),claude:r=>cmpClaudeHist.push(r)};
 const CMP_PANEL={gemini:()=>geminiPanel,gpt:()=>gptPanel,claude:()=>claudePanel};
@@ -1143,10 +1911,13 @@ function renderMessage(role,content,isError=false,fileLabel=null,model="gemini",
   row.className=`msg-row ${role}${role==="bot"&&model!=="gemini"?" "+model+"-msg":""}${privateMode?" incognito-msg":""}`;
   const inner=document.createElement("div");inner.className="msg-inner";
   const avatar=document.createElement("div");avatar.className="msg-avatar";
-  if(role==="user")avatar.textContent="U";
-  else if(model==="gpt")avatar.textContent="G";
+  if(role==="user"){
+    const uname=localStorage.getItem("bk_username")||"U";
+    const initials=uname.trim().split(/\s+/).map(w=>w[0].toUpperCase()).slice(0,2).join("");
+    avatar.textContent=initials||"U";
+  } else if(model==="gpt")avatar.textContent="G";
   else if(model==="claude")avatar.textContent="C";
-  else avatar.textContent="✨";
+  else avatar.innerHTML=`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="20" height="20" style="display:block"><defs><linearGradient id="avGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3F51B5"/><stop offset="100%" stop-color="#FF9933"/></linearGradient></defs><polygon points="96,50 85,65 83,83 65,85 50,96 35,85 17,83 15,65 4,50 15,35 17,17 35,15 50,4 65,15 83,17 85,35" fill="#FFD700"/><circle cx="50" cy="50" r="36" fill="url(#avGrad)"/><circle cx="50" cy="50" r="36" fill="none" stroke="#FFD700" stroke-width="2.5"/><line x1="62" y1="50" x2="86" y2="50" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="58.5" y1="58.5" x2="75.5" y2="75.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="50" y1="62" x2="50" y2="86" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="41.5" y1="58.5" x2="24.5" y2="75.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="38" y1="50" x2="14" y2="50" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="41.5" y1="41.5" x2="24.5" y2="24.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="50" y1="38" x2="50" y2="14" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="58.5" y1="41.5" x2="75.5" y2="24.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><circle cx="50" cy="50" r="11" fill="#FFD700"/><circle cx="50" cy="50" r="6" fill="url(#avGrad)"/><circle cx="50" cy="50" r="3" fill="#FFD700"/></svg>`;
   const body=document.createElement("div");body.className="msg-body";
   const contentEl=document.createElement("div");contentEl.className="msg-content";
   if(fileLabel){
@@ -1185,7 +1956,9 @@ function renderTyping(model="gemini"){
   const row=document.createElement("div");row.className=`msg-row bot${model!=="gemini"?" "+model+"-msg":""}`;
   const inner=document.createElement("div");inner.className="msg-inner";
   const avatar=document.createElement("div");avatar.className="msg-avatar";
-  avatar.textContent=model==="gpt"?"G":model==="claude"?"C":"✨";
+  if(model==="gpt")avatar.textContent="G";
+  else if(model==="claude")avatar.textContent="C";
+  else avatar.innerHTML=`<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="20" height="20" style="display:block"><defs><linearGradient id="avGrad2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3F51B5"/><stop offset="100%" stop-color="#FF9933"/></linearGradient></defs><polygon points="96,50 85,65 83,83 65,85 50,96 35,85 17,83 15,65 4,50 15,35 17,17 35,15 50,4 65,15 83,17 85,35" fill="#FFD700"/><circle cx="50" cy="50" r="36" fill="url(#avGrad2)"/><circle cx="50" cy="50" r="36" fill="none" stroke="#FFD700" stroke-width="2.5"/><line x1="62" y1="50" x2="86" y2="50" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="58.5" y1="58.5" x2="75.5" y2="75.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="50" y1="62" x2="50" y2="86" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="41.5" y1="58.5" x2="24.5" y2="75.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="38" y1="50" x2="14" y2="50" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="41.5" y1="41.5" x2="24.5" y2="24.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="50" y1="38" x2="50" y2="14" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><line x1="58.5" y1="41.5" x2="75.5" y2="24.5" stroke="#FFD700" stroke-width="2.2" stroke-linecap="round"/><circle cx="50" cy="50" r="11" fill="#FFD700"/><circle cx="50" cy="50" r="6" fill="url(#avGrad2)"/><circle cx="50" cy="50" r="3" fill="#FFD700"/></svg>`;
   const body=document.createElement("div");body.className="msg-body";
   const content=document.createElement("div");content.className="msg-content";
   content.innerHTML=`<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
@@ -1315,6 +2088,513 @@ if (!SpeechRecognition) {
 }
 
 msgInput.focus();
+
+// ── User info & plan badge ─────────────────────────────────────────────────
+function updateUserInfo(){
+  const role=localStorage.getItem("bk_role")||"user";
+  const plan=localStorage.getItem("bk_plan")||"free";
+  const username=localStorage.getItem("bk_username")||"User";
+  document.getElementById("sidebar-username").textContent=username;
+  const badge=document.getElementById("sidebar-plan-badge");
+  badge.textContent=plan.charAt(0).toUpperCase()+plan.slice(1);
+  badge.className="plan-badge plan-"+plan;
+  const adminBtn=document.getElementById("admin-panel-btn");
+  adminBtn.style.display=role==="admin"?"flex":"none";
+  document.getElementById("sidebar-panels").classList.add("visible");
+  // Free plan: hide GPT/Claude tabs
+  if(plan==="free"){
+    document.querySelector(".gpt-tab")?.classList.add("unavailable");
+    document.querySelector(".claude-tab")?.classList.add("unavailable");
+    document.querySelector(".compare-tab")?.classList.add("unavailable");
+  }
+}
+
+// ── Admin Panel ────────────────────────────────────────────────────────────
+const adminPanelEl=document.getElementById("admin-panel");
+const orgPanelEl  =document.getElementById("org-panel");
+
+const adminPanelBtn = document.getElementById("admin-panel-btn");
+const orgPanelBtn   = document.getElementById("org-panel-btn");
+adminPanelBtn.addEventListener("click",()=>{ openAdminPanel(); adminPanelBtn.classList.add("panel-open"); orgPanelBtn.classList.remove("panel-open"); });
+document.getElementById("admin-panel-close").addEventListener("click",()=>{ adminPanelEl.classList.remove("open"); adminPanelBtn.classList.remove("panel-open"); });
+orgPanelBtn.addEventListener("click",()=>{ openOrgPanel(); orgPanelBtn.classList.add("panel-open"); adminPanelBtn.classList.remove("panel-open"); });
+document.getElementById("org-panel-close").addEventListener("click",()=>{ orgPanelEl.classList.remove("open"); orgPanelBtn.classList.remove("panel-open"); });
+
+// Tab switching
+adminPanelEl.querySelectorAll(".panel-tab").forEach(tab=>{
+  tab.addEventListener("click",()=>{
+    adminPanelEl.querySelectorAll(".panel-tab").forEach(t=>t.classList.remove("active"));
+    adminPanelEl.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById(tab.dataset.tab).classList.add("active");
+    if(tab.dataset.tab==="stats-tab") loadStats();
+  });
+});
+
+async function openAdminPanel(){
+  adminPanelEl.classList.add("open");
+  await loadUsers_admin();
+}
+async function loadUsers_admin(){
+  try{
+    const r=await fetch("/api/admin/users",{headers:{"Authorization":`Bearer ${authToken}`}});
+    if(!r.ok) return;
+    const users=await r.json();
+    renderUsersTable(users);
+  }catch{}
+}
+function renderUsersTable(users){
+  const tbody=document.getElementById("users-tbody");
+  tbody.innerHTML="";
+  users.forEach(u=>{
+    const planClass=`plan-${u.plan}`;
+    const created=u.createdAt?new Date(u.createdAt).toLocaleDateString():"—";
+    const lastLogin=u.lastLogin?new Date(u.lastLogin).toLocaleDateString():"Never";
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><strong>${escHtml(u.username)}</strong></td>
+      <td>${escHtml(u.role)}</td>
+      <td><span class="plan-badge ${planClass}">${u.plan}</span></td>
+      <td><span style="color:${u.active?"var(--accent)":"#ef4444"}">${u.active?"Active":"Inactive"}</span></td>
+      <td style="color:var(--text-muted);font-size:0.78rem;">${created}</td>
+      <td style="color:var(--text-muted);font-size:0.78rem;">${lastLogin}</td>
+      <td>
+        <select style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:0.75rem;padding:3px 6px;cursor:pointer;" onchange="updateUserPlan('${u.id}',this.value)">
+          <option value="free"${u.plan==="free"?" selected":""}>Free</option>
+          <option value="basic"${u.plan==="basic"?" selected":""}>Basic</option>
+          <option value="premium"${u.plan==="premium"?" selected":""}>Premium</option>
+          <option value="enterprise"${u.plan==="enterprise"?" selected":""}>Enterprise</option>
+        </select>
+        <button class="panel-btn secondary" style="padding:4px 10px;font-size:0.73rem;margin-left:6px;" onclick="toggleUserActive('${u.id}',${u.active})">${u.active?"Deactivate":"Activate"}</button>
+        <button class="panel-btn danger" style="padding:4px 10px;font-size:0.73rem;margin-left:4px;" onclick="deleteUser('${u.id}','${escHtml(u.username)}')">Delete</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+async function updateUserPlan(id,plan){
+  try{
+    await fetch(`/api/admin/users/${id}`,{method:"PUT",headers:{"Authorization":`Bearer ${authToken}`,"Content-Type":"application/json"},body:JSON.stringify({plan})});
+    await loadUsers_admin();
+  }catch{}
+}
+async function toggleUserActive(id,current){
+  try{
+    await fetch(`/api/admin/users/${id}`,{method:"PUT",headers:{"Authorization":`Bearer ${authToken}`,"Content-Type":"application/json"},body:JSON.stringify({active:!current})});
+    await loadUsers_admin();
+  }catch{}
+}
+async function deleteUser(id,username){
+  if(!confirm(`Delete user "${username}"? This cannot be undone.`)) return;
+  try{
+    await fetch(`/api/admin/users/${id}`,{method:"DELETE",headers:{"Authorization":`Bearer ${authToken}`}});
+    await loadUsers_admin();
+  }catch{}
+}
+document.getElementById("add-user-btn").addEventListener("click",async()=>{
+  const username=document.getElementById("new-username").value.trim();
+  const password=document.getElementById("new-password").value;
+  const role=document.getElementById("new-role").value;
+  const plan=document.getElementById("new-plan").value;
+  const errEl=document.getElementById("add-user-error");
+  errEl.style.display="none";
+  if(!username||!password){errEl.textContent="Username and password are required.";errEl.style.display="block";return;}
+  try{
+    const r=await fetch("/api/admin/users",{method:"POST",headers:{"Authorization":`Bearer ${authToken}`,"Content-Type":"application/json"},body:JSON.stringify({username,password,role,plan})});
+    const d=await r.json();
+    if(!r.ok){errEl.textContent=d.error||"Failed to add user.";errEl.style.display="block";return;}
+    document.getElementById("new-username").value="";
+    document.getElementById("new-password").value="";
+    await loadUsers_admin();
+  }catch(e){errEl.textContent="Server error.";errEl.style.display="block";}
+});
+async function loadStats(){
+  try{
+    const r=await fetch("/api/admin/users",{headers:{"Authorization":`Bearer ${authToken}`}});
+    if(!r.ok)return;
+    const users=await r.json();
+    document.getElementById("stat-total-users").textContent=users.length;
+    document.getElementById("stat-active-users").textContent=users.filter(u=>u.active).length;
+    document.getElementById("stat-admin-users").textContent=users.filter(u=>u.role==="admin").length;
+    document.getElementById("stat-pro-users").textContent=users.filter(u=>u.plan==="pro"||u.plan==="enterprise").length;
+  }catch{}
+}
+
+// ── Org Panel ──────────────────────────────────────────────────────────────
+async function openOrgPanel(){
+  orgPanelEl.classList.add("open");
+  try{
+    const r=await fetch("/api/org",{headers:{"Authorization":`Bearer ${authToken}`}});
+    if(!r.ok)return;
+    const org=await r.json();
+    document.getElementById("org-name-input").value=org.name||"";
+    document.getElementById("org-logo-input").value=org.logo||"";
+  }catch{}
+  // Load members from users list (admin only)
+  const role=localStorage.getItem("bk_role");
+  if(role==="admin"){
+    try{
+      const r=await fetch("/api/admin/users",{headers:{"Authorization":`Bearer ${authToken}`}});
+      if(r.ok){
+        const users=await r.json();
+        const tbody=document.getElementById("org-members-tbody");
+        tbody.innerHTML="";
+        users.forEach(u=>{
+          const tr=document.createElement("tr");
+          tr.innerHTML=`<td><strong>${escHtml(u.username)}</strong></td><td>${escHtml(u.role)}</td><td><span class="plan-badge plan-${u.plan}">${u.plan}</span></td><td style="color:var(--text-muted);font-size:0.78rem;">${u.lastLogin?new Date(u.lastLogin).toLocaleDateString():"Never"}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+    }catch{}
+  }
+}
+document.getElementById("save-org-btn").addEventListener("click",async()=>{
+  const name=document.getElementById("org-name-input").value.trim();
+  const logo=document.getElementById("org-logo-input").value.trim();
+  const msg=document.getElementById("org-save-msg");
+  try{
+    const r=await fetch("/api/org",{method:"PUT",headers:{"Authorization":`Bearer ${authToken}`,"Content-Type":"application/json"},body:JSON.stringify({name,logo})});
+    if(r.ok){msg.style.display="block";setTimeout(()=>msg.style.display="none",2000);}
+  }catch{}
+});
+
+// ── Stripe Subscription ────────────────────────────────────────────────────
+function showToast(msg,duration=4000){
+  let t=document.getElementById("ascend-toast");
+  if(!t){
+    t=document.createElement("div");
+    t.id="ascend-toast";
+    t.style.cssText="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1e1e35;color:#f0f0ff;border:1px solid var(--accent);border-radius:50px;padding:10px 22px;font-size:0.85rem;font-weight:500;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:opacity 0.3s;";
+    document.body.appendChild(t);
+  }
+  t.textContent=msg; t.style.opacity="1";
+  clearTimeout(t._timeout);
+  t._timeout=setTimeout(()=>{t.style.opacity="0";},duration);
+}
+
+function updatePlanCardUI(){
+  const plan=localStorage.getItem("bk_plan")||"free";
+  document.querySelectorAll("#plan-cards-container .plan-card").forEach(card=>{
+    const cp=card.dataset.plan;
+    const badge=card.querySelector(".plan-current-badge");
+    const btn=card.querySelector(".plan-subscribe-btn");
+    if(cp===plan){
+      if(badge) badge.style.display="block";
+      if(btn)   btn.style.display="none";
+    } else {
+      if(badge) badge.style.display="none";
+      if(btn){
+        btn.style.display="block";
+        // If user is on premium, hide basic subscribe btn too
+        if(plan==="premium"&&cp==="basic") btn.style.display="none";
+        if(plan==="enterprise") btn.style.display="none";
+      }
+    }
+  });
+  // Show manage section if user has a paid plan
+  const manageSection=document.getElementById("stripe-manage-section");
+  if(plan==="basic"||plan==="premium"){
+    manageSection.style.display="flex";
+    const statusEl=document.getElementById("stripe-sub-status");
+    statusEl.textContent=`Active ${plan.charAt(0).toUpperCase()+plan.slice(1)} plan`;
+  } else {
+    manageSection.style.display="none";
+  }
+}
+
+document.querySelectorAll(".plan-subscribe-btn").forEach(btn=>{
+  btn.addEventListener("click",async()=>{
+    const plan=btn.dataset.plan;
+    btn.disabled=true; btn.textContent="Redirecting…";
+    try{
+      const res=await fetch("/api/subscription/checkout",{
+        method:"POST",
+        headers:{"Authorization":`Bearer ${authToken}`,"Content-Type":"application/json"},
+        body:JSON.stringify({plan})
+      });
+      const data=await res.json();
+      if(data.url) window.location.href=data.url;
+      else { showToast("⚠️ "+(data.error||"Payment setup failed.")); btn.disabled=false; btn.textContent=plan==="basic"?"Get Started — $3.99/mo":"Go Premium — $8.99/mo"; }
+    }catch{
+      showToast("⚠️ Could not connect to payment server.");
+      btn.disabled=false; btn.textContent=plan==="basic"?"Get Started — $3.99/mo":"Go Premium — $8.99/mo";
+    }
+  });
+});
+
+document.getElementById("manage-sub-btn").addEventListener("click",async()=>{
+  const btn=document.getElementById("manage-sub-btn");
+  btn.disabled=true; btn.textContent="Opening…";
+  try{
+    const res=await fetch("/api/subscription/portal",{method:"POST",headers:{"Authorization":`Bearer ${authToken}`}});
+    const data=await res.json();
+    if(data.url) window.location.href=data.url;
+    else showToast("⚠️ "+(data.error||"Could not open billing portal."));
+  }catch{ showToast("⚠️ Could not reach server."); }
+  finally{ btn.disabled=false; btn.textContent="⚙️ Manage Subscription"; }
+});
+
+// Handle return from Stripe Checkout
+(async()=>{
+  const params=new URLSearchParams(window.location.search);
+  if(params.get("checkout")==="success"&&authToken){
+    try{
+      const r=await fetch("/api/me",{headers:{"Authorization":`Bearer ${authToken}`}});
+      if(r.ok){
+        const d=await r.json();
+        localStorage.setItem("bk_plan",d.plan||"free");
+        localStorage.setItem("bk_role",d.role||"user");
+        updateUserInfo(); updatePlanCardUI();
+        showToast("🎉 Welcome to "+d.plan.charAt(0).toUpperCase()+d.plan.slice(1)+"! Your plan is now active.");
+      }
+    }catch{}
+    window.history.replaceState({},"","/");
+  } else if(params.get("checkout")==="cancel"){
+    showToast("Payment cancelled — no charge was made.");
+    window.history.replaceState({},"","/");
+  }
+})();
+
+// Init plan card UI on load (after auth check)
+if(authToken) updatePlanCardUI();
+
+// ── Budget System ──────────────────────────────────────────────────────────
+let budgetStatus = null;
+
+function renderBudgetBanner(status) {
+  const banner = document.getElementById("budget-banner");
+  if (!status || status.exempt) {
+    banner.style.display = "none";
+    document.getElementById("cycle-budget-section").style.display = "none";
+    return;
+  }
+  // Sidebar widget
+  const cycleSection = document.getElementById("cycle-budget-section");
+  const spent    = (status.spentUsd||0).toFixed(3);
+  const budget   = (status.budgetUsd||0).toFixed(2);
+  const remaining = Math.max(0, (status.budgetUsd||0) - (status.spentUsd||0)).toFixed(3);
+  const pct      = Math.min((status.pctUsed||0)*100, 100);
+  cycleSection.style.display = "block";
+  document.getElementById("budget-spent-sidebar").textContent    = "$"+spent;
+  document.getElementById("budget-remaining-sidebar").textContent = "$"+remaining;
+  const barColor = status.isHardLimit ? "#ef4444" : status.isWarning ? "#f59e0b" : "#22c55e";
+  const sideBar  = document.getElementById("budget-sidebar-bar");
+  sideBar.style.width      = pct.toFixed(1)+"%";
+  sideBar.style.background = barColor;
+
+  // Top banner
+  const inner = document.getElementById("budget-progress-inner");
+  const label = document.getElementById("budget-progress-label");
+  inner.style.width      = pct.toFixed(1)+"%";
+  inner.style.background = barColor;
+  label.textContent      = "$"+spent+" / $"+budget;
+
+  if (status.isHardLimit) {
+    banner.className = "limit";
+    banner.style.display = "flex";
+    document.getElementById("budget-banner-icon").textContent = "🔒";
+    document.getElementById("budget-banner-text").textContent = "Monthly budget reached — only Gemini 2.5 Flash Lite available until next billing cycle.";
+  } else if (status.isWarning) {
+    banner.className = "warn";
+    banner.style.display = "flex";
+    document.getElementById("budget-banner-icon").textContent = "⚠️";
+    document.getElementById("budget-banner-text").textContent = "75% of monthly budget used — switched to Gemini 2.5 Flash Lite to conserve budget.";
+  } else {
+    banner.style.display = "none";
+  }
+
+  // Throttle model tabs
+  if (status.isWarning || status.isHardLimit) {
+    enforceBudgetThrottle();
+  } else {
+    unenforceBudgetThrottle();
+  }
+}
+
+function enforceBudgetThrottle() {
+  document.querySelectorAll(".model-tab:not([data-model='gemini']):not([data-model='incognito'])").forEach(tab=>{
+    tab.classList.add("unavailable");
+    tab.title = "Budget limit reached — upgrade or wait for next cycle";
+  });
+  // If on a non-gemini model, force switch
+  const active = localStorage.getItem("bk_model")||"gemini";
+  if (active !== "gemini" && active !== "incognito") {
+    const geminiTab = document.querySelector(".model-tab[data-model='gemini']");
+    if (geminiTab) geminiTab.click();
+  }
+}
+
+function unenforceBudgetThrottle() {
+  document.querySelectorAll(".model-tab.unavailable").forEach(tab=>{
+    tab.classList.remove("unavailable");
+    tab.title = "";
+  });
+}
+
+async function refreshBudgetStatus() {
+  if (!authToken) return;
+  try {
+    const res = await fetch("/api/me", { headers:{ "Authorization":`Bearer ${authToken}` } });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.budgetStatus) {
+      budgetStatus = data.budgetStatus;
+      renderBudgetBanner(budgetStatus);
+    }
+  } catch {}
+}
+
+// Refresh budget when tab becomes visible again
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && authToken) refreshBudgetStatus();
+});
+
+// Call after login
+const _origDoLogin_budget = doLogin;
+// Hook into successful chat responses to update banner live
+const _origSubmitSolo = window.submitSolo;
+
+// ── Admin Budget Tab ───────────────────────────────────────────────────────
+async function loadAdminBudget() {
+  try {
+    const res = await fetch("/api/admin/spending", { headers:{ "Authorization":`Bearer ${authToken}` } });
+    const data = await res.json();
+
+    // Stat cards
+    document.getElementById("bsc-today").textContent   = "$"+(data.spendToday||0).toFixed(4);
+    document.getElementById("bsc-total").textContent   = "$"+(data.totalSpentAllUsers||0).toFixed(4);
+    document.getElementById("bsc-warning").textContent = data.usersAtWarning||0;
+    document.getElementById("bsc-limit").textContent   = data.usersAtLimit||0;
+
+    // Canvas chart
+    drawSpendingChart(data.dailyAggregate || {});
+
+    // Per-user table
+    const tbody = document.getElementById("budget-user-tbody");
+    tbody.innerHTML = "";
+    (data.users||[]).forEach(u => {
+      if (u.spentUsd === null) return; // skip exempt (enterprise/free)
+      const pct = Math.min((u.pctUsed||0)*100, 100);
+      const barColor = u.isHardLimit ? "#ef4444" : u.isWarning ? "#f59e0b" : "#22c55e";
+      const statusBadge = u.isHardLimit
+        ? '<span style="color:#ef4444;font-size:0.7rem;">🔒 Limit</span>'
+        : u.isWarning
+          ? '<span style="color:#f59e0b;font-size:0.7rem;">⚠️ Warning</span>'
+          : '<span style="color:#22c55e;font-size:0.7rem;">✓ OK</span>';
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${u.username}</td>
+        <td><span class="plan-badge plan-${u.plan}">${u.plan}</span></td>
+        <td style="font-variant-numeric:tabular-nums;">$${(u.spentUsd||0).toFixed(4)}</td>
+        <td style="font-variant-numeric:tabular-nums;">$${(u.budgetUsd||0).toFixed(2)}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="budget-tbl-bar-wrap"><div class="budget-tbl-bar-fill" style="width:${pct.toFixed(1)}%;background:${barColor};"></div></div>
+            <span style="font-size:0.7rem;color:var(--text-muted);">${(pct).toFixed(1)}%</span>
+            ${statusBadge}
+          </div>
+        </td>
+        <td style="font-size:0.75rem;color:var(--text-muted);">${u.cycleStartDate||"—"}</td>
+        <td>
+          <button class="panel-btn" style="padding:3px 9px;font-size:0.7rem;" onclick="adminBudgetReset('${u.userId}','${u.username}')">Reset</button>
+          <button class="panel-btn" style="padding:3px 9px;font-size:0.7rem;margin-left:4px;" onclick="adminBudgetTopup('${u.userId}','${u.username}')">Top Up</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+    if (!tbody.children.length) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">No paid users yet.</td></tr>';
+  } catch(e) { console.error("loadAdminBudget error:", e); }
+}
+
+function drawSpendingChart(dailyData) {
+  const canvas = document.getElementById("spending-chart");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const keys = Object.keys(dailyData).sort();
+  const vals = keys.map(k => dailyData[k] || 0);
+  const maxVal = Math.max(...vals, 0.001);
+
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.clientWidth - 28;
+  const H = 120;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + "px";
+  canvas.style.height = H + "px";
+  ctx.scale(dpr, dpr);
+
+  ctx.clearRect(0, 0, W, H);
+  const barW = Math.max(2, (W / keys.length) - 2);
+  const padBottom = 20;
+  const chartH = H - padBottom - 6;
+
+  keys.forEach((key, i) => {
+    const val = vals[i];
+    const x   = i * (W / keys.length);
+    const bh  = Math.max(2, (val / maxVal) * chartH);
+    const y   = H - padBottom - bh;
+    const alpha = val > 0 ? 0.8 : 0.25;
+    ctx.fillStyle = `rgba(63,81,181,${alpha})`;
+    ctx.beginPath();
+    ctx.roundRect(x+1, y, barW, bh, [2,2,0,0]);
+    ctx.fill();
+    // Label every 7th bar
+    if (i % 7 === 0 || i === keys.length-1) {
+      ctx.fillStyle = "rgba(136,136,176,0.7)";
+      ctx.font = `${9 * dpr / dpr}px system-ui`;
+      ctx.fillText(key.slice(5), x, H - 4);
+    }
+  });
+}
+
+async function adminBudgetReset(userId, username) {
+  if (!confirm(`Reset ${username}'s budget cycle to $0?`)) return;
+  try {
+    const r = await fetch("/api/admin/budget/reset", {
+      method:"POST", headers:{"Authorization":`Bearer ${authToken}`,"Content-Type":"application/json"},
+      body: JSON.stringify({ userId, action:"reset" })
+    });
+    const d = await r.json();
+    if (d.ok) { showToast(`✅ Budget reset for ${username}`); loadAdminBudget(); }
+    else showToast("⚠️ "+(d.error||"Reset failed"));
+  } catch { showToast("⚠️ Network error"); }
+}
+
+async function adminBudgetTopup(userId, username) {
+  const amount = parseFloat(prompt(`Top up ${username}'s budget by how much $USD?`));
+  if (!amount || amount <= 0) return;
+  try {
+    const r = await fetch("/api/admin/budget/reset", {
+      method:"POST", headers:{"Authorization":`Bearer ${authToken}`,"Content-Type":"application/json"},
+      body: JSON.stringify({ userId, action:"topup", amountUsd: amount })
+    });
+    const d = await r.json();
+    if (d.ok) { showToast(`✅ Added $${amount.toFixed(2)} credits for ${username}`); loadAdminBudget(); }
+    else showToast("⚠️ "+(d.error||"Top-up failed"));
+  } catch { showToast("⚠️ Network error"); }
+}
+
+// Wire budget tab load into admin panel tab switcher
+adminPanelEl.querySelectorAll(".panel-tab").forEach(tab=>{
+  tab.addEventListener("click",()=>{ if(tab.dataset.tab==="budget-tab") loadAdminBudget(); });
+});
+
+// Boot: load budget status after login
+if (authToken) refreshBudgetStatus();
+
+// ── Typewriter for login protocol text ────────────────────────────────────
+(function(){
+  const el = document.getElementById("login-protocol-text");
+  if(!el) return;
+  const text = "Initiating Entry Protocol";
+  let i = 0;
+  el.innerHTML = '<span class="login-protocol-cursor"></span>';
+  function type(){
+    if(i < text.length){
+      el.innerHTML = text.slice(0,++i) + '<span class="login-protocol-cursor"></span>';
+      setTimeout(type, 75);
+    }
+  }
+  setTimeout(type, 400);
+})();
 </script>
 </body>
 </html>
